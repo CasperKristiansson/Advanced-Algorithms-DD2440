@@ -52,6 +52,26 @@ impl Graph {
     }
 }
 
+struct SparseGraph {
+    num_nodes: i32,
+    adjacency_list: Vec<Vec<i32>>
+}
+
+impl SparseGraph {
+    fn add_edge(&mut self, x: i32, y: i32) {
+        self.adjacency_list[x as usize].push(y);
+        self.adjacency_list[y as usize].push(x);
+    }
+
+    fn contains_circle(&self) -> bool {
+
+    }
+
+    fn get_vertex_degree(&self, x: i32) -> i32 {
+        self.adjacency_list[x as usize].len() as i32
+    }
+}
+
 pub fn euclidean_distance((x1, y1): (f64, f64), (x2, y2): (f64, f64)) -> i32 {
         ((x1 - x2).powi(2) + (y1 - y2).powi(2)).sqrt().round() as i32
 }
