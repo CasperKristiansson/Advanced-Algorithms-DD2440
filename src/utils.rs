@@ -58,6 +58,13 @@ struct SparseGraph {
 }
 
 impl SparseGraph {
+    pub(crate) fn new(num_nodes: i32) -> SparseGraph {
+        SparseGraph {
+            num_nodes,
+            adjacency_list: vec![Vec::new(); num_nodes as usize]
+        }
+    }
+
     fn add_edge(&mut self, x: i32, y: i32) {
         self.adjacency_list[x as usize].push(y);
         self.adjacency_list[y as usize].push(x);
