@@ -70,8 +70,28 @@ impl SparseGraph {
         self.adjacency_list[y as usize].push(x);
     }
 
-    fn contains_circle(&self) -> bool {
+    fn remove_edge(&mut self, x: i32, y:i32) {
+        let index = self.adjacency_list[x as usize].iter().position(|&r| r == y).unwrap();
+        self.adjacency_list[x as usize].remove(index);
+        let index = self.adjacency_list[y as usize].iter().position(|&r| r == x).unwrap();
+        self.adjacency_list[y as usize].remove(index);
+    }
 
+    fn contains_circle(&self) -> bool {
+        let mut visited = vec![false; self.num_nodes as usize];
+        let mut stack = Vec::new();
+        stack.push(0);
+        while !stack.is_empty() {
+            let node = stack.pop().unwrap();
+            if visited[node as usize] {
+                return true;
+            }
+            visited[node as usize] = true;
+            for neighbor in &self.adjacency_list[node as usize] {
+                stack.push(*neighbor);
+            }
+        }
+        false
     }
 
     fn get_vertex_degree(&self, x: i32) -> i32 {
