@@ -1,10 +1,10 @@
+mod utils;
+
+use std::collections::VecDeque;
 use std::io::{self};
+use crate::utils::Graph;
 
-fn euclidean_distance((x1, y1): (f64, f64), (x2, y2): (f64, f64)) -> i64 {
-    ((x1 - x2).powi(2) + (y1 - y2).powi(2)).sqrt().round() as i64
-}
-
-fn greedy_tour(points: &Vec<(f64, f64)>) -> Vec<usize> {
+fn nearest_neighbor_tour(points: &Vec<(f64, f64)>) -> Vec<usize> {
     let n = points.len();
     let mut tour = vec![0; n];
     let mut used = vec![false; n];
@@ -14,7 +14,7 @@ fn greedy_tour(points: &Vec<(f64, f64)>) -> Vec<usize> {
     for i in 1..n {
         let mut best = None;
         for j in 0..n {
-            if !used[j] && (best.is_none() || euclidean_distance(points[tour[i-1]], points[j]) < euclidean_distance(points[tour[i-1]], points[best.unwrap()])) {
+            if !used[j] && (best.is_none() || utils::euclidean_distance(points[tour[i-1]], points[j]) < utils::euclidean_distance(points[tour[i-1]], points[best.unwrap()])) {
                 best = Some(j);
             }
         }
@@ -23,6 +23,15 @@ fn greedy_tour(points: &Vec<(f64, f64)>) -> Vec<usize> {
     }
 
     tour
+}
+
+fn greedy_tour(graph: &Graph) -> Vec<usize> {
+    let n = graph.num_nodes;
+
+
+    for i in 0..n-1 {
+
+    }
 }
 
 fn main() {
@@ -42,9 +51,16 @@ fn main() {
 
         points.push((nums[0], nums[1]));
     }
-    let result = greedy_tour(&points);
+    // let result = greedy_tour(&points);
 
-    for res in result {
-        println!("{:?}", res);
+    // for res in result {
+    //     println!("{:?}", res);
+    // }
+    let graph = utils::Graph::new(&points);
+
+    for i in 0..graph.num_nodes {
+        for j in 0..graph.num_nodes {
+            println!("Edge between ({:?}) has length {:?}", (i,j), graph.get_edge(i, j));
+        }
     }
 }
