@@ -44,15 +44,17 @@ impl Graph {
         let mut edges = VecDeque::new();
         for i in 0..self.num_nodes {
             for j in i+1..self.num_nodes {
-                edges.push((i, j));
+                edges.push_back((i, j));
             }
         }
-        edges.sort_by(|a, b| self.get_edge(a.0, a.1).cmp(&self.get_edge(b.0, b.1)));
-        edges
+        let mut edges_vec: Vec<(i32, i32)> = edges.into_iter().collect();
+        edges_vec.sort_by(|a, b| self.get_edge(a.0, a.1).cmp(&self.get_edge(b.0, b.1)));
+
+        VecDeque::from(edges_vec)
     }
 }
 
-struct SparseGraph {
+pub struct SparseGraph {
     num_nodes: i32,
     adjacency_list: Vec<Vec<i32>>
 }
@@ -65,19 +67,19 @@ impl SparseGraph {
         }
     }
 
-    fn add_edge(&mut self, x: i32, y: i32) {
+    pub(crate) fn add_edge(&mut self, x: i32, y: i32) {
         self.adjacency_list[x as usize].push(y);
         self.adjacency_list[y as usize].push(x);
     }
 
-    fn remove_edge(&mut self, x: i32, y:i32) {
+    pub(crate) fn remove_edge(&mut self, x: i32, y:i32) {
         let index = self.adjacency_list[x as usize].iter().position(|&r| r == y).unwrap();
         self.adjacency_list[x as usize].remove(index);
         let index = self.adjacency_list[y as usize].iter().position(|&r| r == x).unwrap();
         self.adjacency_list[y as usize].remove(index);
     }
 
-    fn contains_circle(&self) -> bool {
+    pub(crate) fn contains_circle(&self) -> bool {
         let mut visited = vec![false; self.num_nodes as usize];
         let mut stack = Vec::new();
         stack.push(0);
@@ -94,8 +96,12 @@ impl SparseGraph {
         false
     }
 
-    fn get_vertex_degree(&self, x: i32) -> i32 {
+    pub(crate) fn get_vertex_degree(&self, x: i32) -> i32 {
         self.adjacency_list[x as usize].len() as i32
+    }
+
+    pub(crate) fn get_neihgbors(&self, x: i32) -> Vec<i32> {
+        self.adjacency_list[x as usize].clone()
     }
 }
 
