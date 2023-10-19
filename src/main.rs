@@ -1,30 +1,29 @@
 mod utils;
 
-use std::collections::VecDeque;
 use std::io::{self};
 use crate::utils::Graph;
 use crate::utils::SparseGraph;
 
-fn nearest_neighbor_tour(points: &Vec<(f64, f64)>) -> Vec<usize> {
-    let n = points.len();
-    let mut tour = vec![0; n];
-    let mut used = vec![false; n];
-
-    used[0] = true;
-
-    for i in 1..n {
-        let mut best = None;
-        for j in 0..n {
-            if !used[j] && (best.is_none() || utils::euclidean_distance(points[tour[i-1]], points[j]) < utils::euclidean_distance(points[tour[i-1]], points[best.unwrap()])) {
-                best = Some(j);
-            }
-        }
-        tour[i] = best.unwrap();
-        used[tour[i]] = true;
-    }
-
-    tour
-}
+// fn nearest_neighbor_tour(points: &Vec<(f64, f64)>) -> Vec<usize> {
+//     let n = points.len();
+//     let mut tour = vec![0; n];
+//     let mut used = vec![false; n];
+//
+//     used[0] = true;
+//
+//     for i in 1..n {
+//         let mut best = None;
+//         for j in 0..n {
+//             if !used[j] && (best.is_none() || utils::euclidean_distance(points[tour[i-1]], points[j]) < utils::euclidean_distance(points[tour[i-1]], points[best.unwrap()])) {
+//                 best = Some(j);
+//             }
+//         }
+//         tour[i] = best.unwrap();
+//         used[tour[i]] = true;
+//     }
+//
+//     tour
+// }
 
 fn greedy_tour(graph: &Graph) -> Vec<i32> {
     let n = graph.num_nodes;
@@ -34,10 +33,11 @@ fn greedy_tour(graph: &Graph) -> Vec<i32> {
     let mut sparse_graph = SparseGraph::new(n);
 
     while !sorted.is_empty() {
-        let (x, y) = sorted.pop_front().unwrap();
+        let (x, y) = sorted.pop().unwrap();
         if sparse_graph.get_vertex_degree(x) < 2 && sparse_graph.get_vertex_degree(y) < 2 {
             sparse_graph.add_edge(x, y);
-            if sparse_graph.contains_circle() {
+            let circle_length = sparse_graph.contains_circle();
+            if circle_length >= 0 && circle_length < n {
                 sparse_graph.remove_edge(x, y);
             }
         }
@@ -46,8 +46,8 @@ fn greedy_tour(graph: &Graph) -> Vec<i32> {
     // build tour from sparse graph
     tour[0] = 0;
     for i in 1..n as usize {
-        let cur = sparse_graph.get_neihgbors(tour[i-1]);
-        tour[i] = if cur[0] != tour[i-1] { cur[0]} else {cur[1]};
+        let cur = sparse_graph.get_neighbors(tour[i-1]);
+        tour[i] = if i > 1 && cur[0] != tour[i-2] {cur[0]} else {cur[1]};
     }
 
     tour

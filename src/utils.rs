@@ -40,17 +40,16 @@ impl Graph {
         (x, y)
     }
 
-    pub(crate) fn get_edges_sorted(&self) -> VecDeque<(i32, i32)> {
-        let mut edges = VecDeque::new();
+    pub(crate) fn get_edges_sorted(&self) -> Vec<(i32, i32)> {
+        let mut edges_vec: Vec<(i32, i32)> = Vec::new();
         for i in 0..self.num_nodes {
             for j in i+1..self.num_nodes {
-                edges.push_back((i, j));
+                edges_vec.push_back((i, j));
             }
         }
-        let mut edges_vec: Vec<(i32, i32)> = edges.into_iter().collect();
         edges_vec.sort_by(|a, b| self.get_edge(a.0, a.1).cmp(&self.get_edge(b.0, b.1)));
-
-        VecDeque::from(edges_vec)
+        edges_vec.reverse();
+        edges_vec
     }
 }
 
@@ -74,33 +73,47 @@ impl SparseGraph {
 
     pub(crate) fn remove_edge(&mut self, x: i32, y:i32) {
         let index = self.adjacency_list[x as usize].iter().position(|&r| r == y).unwrap();
-        self.adjacency_list[x as usize].remove(index);
+        self.adjacency_list[x as usize].swap_remove(index);
         let index = self.adjacency_list[y as usize].iter().position(|&r| r == x).unwrap();
-        self.adjacency_list[y as usize].remove(index);
+        self.adjacency_list[y as usize].swap_remove(index);
     }
 
-    pub(crate) fn contains_circle(&self) -> bool {
-        let mut visited = vec![false; self.num_nodes as usize];
+    pub(crate) fn contains_circle(&self) -> i32 {
+        let mut visited = vec![-1; self.num_nodes as usize];
         let mut stack = Vec::new();
-        stack.push(0);
+        stack.push((0,0,0));
         while !stack.is_empty() {
-            let node = stack.pop().unwrap();
-            if visited[node as usize] {
-                return true;
+
+            let (node, parent, index) = stack.pop().unwrap();
+            if visited[node as usize] >= 0 {
+                return index + 1 - visited[node as usize];
             }
-            visited[node as usize] = true;
-            for neighbor in &self.adjacency_list[node as usize] {
-                stack.push(*neighbor);
+            visited[node as usize] = index;
+            if self.adjacency_list[node as usize].len() == 0 {
+                if stack.is_empty() && visited.iter().any(|&x| x == -1) {
+                    let unvisited = visited.iter().position(|&x| x == -1).unwrap() as i32;
+                    stack.push((unvisited, unvisited, 0));
+                }
+                continue;
+            } else {
+                for neighbor in &self.adjacency_list[node as usize] {
+                    if *neighbor == parent {
+                        continue;
+                    } else {
+                        stack.push((*neighbor, node, index + 1));
+                    }
+                }
             }
+
         }
-        false
+        -1
     }
 
     pub(crate) fn get_vertex_degree(&self, x: i32) -> i32 {
         self.adjacency_list[x as usize].len() as i32
     }
 
-    pub(crate) fn get_neihgbors(&self, x: i32) -> Vec<i32> {
+    pub(crate) fn get_neighbors(&self, x: i32) -> Vec<i32> {
         self.adjacency_list[x as usize].clone()
     }
 }
