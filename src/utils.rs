@@ -44,7 +44,7 @@ impl Graph {
         let mut edges_vec: Vec<(i32, i32)> = Vec::new();
         for i in 0..self.num_nodes {
             for j in i+1..self.num_nodes {
-                edges_vec.push_back((i, j));
+                edges_vec.push((i, j));
             }
         }
         edges_vec.sort_by(|a, b| self.get_edge(a.0, a.1).cmp(&self.get_edge(b.0, b.1)));
@@ -86,7 +86,7 @@ impl SparseGraph {
 
             let (node, parent, index) = stack.pop().unwrap();
             if visited[node as usize] >= 0 {
-                return index + 1 - visited[node as usize];
+                return index - visited[node as usize];
             }
             visited[node as usize] = index;
             if self.adjacency_list[node as usize].len() == 0 {

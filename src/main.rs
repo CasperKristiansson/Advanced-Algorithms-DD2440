@@ -47,7 +47,7 @@ fn greedy_tour(graph: &Graph) -> Vec<i32> {
     tour[0] = 0;
     for i in 1..n as usize {
         let cur = sparse_graph.get_neighbors(tour[i-1]);
-        tour[i] = if i > 1 && cur[0] != tour[i-2] {cur[0]} else {cur[1]};
+        tour[i] = if i > 1 && cur[1] != tour[i-2] {cur[1]} else {cur[0]};
     }
 
     tour
