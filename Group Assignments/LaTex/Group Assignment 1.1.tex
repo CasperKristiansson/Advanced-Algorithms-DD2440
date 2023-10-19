@@ -1,0 +1,67 @@
+\documentclass{article}
+\usepackage{cite}
+\usepackage{graphicx} % Required for inserting images
+\usepackage{mathtools}
+\usepackage[linesnumbered,ruled,vlined]{algorithm2e}
+\usepackage[a4paper, total={6in, 8in}]{geometry}
+\usepackage{hyperref}
+\usepackage{amsmath}
+\usepackage{amsthm}
+\newtheorem{theorem}{Theorem}[section]
+\newtheorem{lemma}[theorem]{Lemma}
+\usepackage{enumitem}
+
+\title{Group 2: Assignment 1.1}
+\author{Niv Adam, David Kaufmann, Casper Kristiansson, Nicole Wijkman}
+\date{\today}
+
+\begin{document}
+
+\maketitle
+
+\section{D-Level Problem (1.1)}
+
+We define a graph $G=(V,E)$. Let $V=\{x_1,...,x_n\}$ be a set of all variables and let the edge set be of the form $E=\{(x_i,x_j)|x_i\neq x_j\in I\}$ with $I=\{E_1,...,E_m\}$. $E_1,...,E_m$ are the inequalities as defined in the task description.
+
+Additionally, we define a function $K:V\rightarrow \{null\} \cup \{1..k\}$ which returns the assigned value for the variable or $null$ if no value was assigned yet. $K_i=\{v \in V|K(v) = i\}\subseteq V$ is a subset of all variables that have been assigned a specific value.
+\begin{algorithm}
+\caption{D-level problem}
+\DontPrintSemicolon
+\SetKwFunction{FMain}{Main}
+\SetKwProg{Fn}{Function}{:}{}
+    \Fn{\FMain{$V$, $E$, $K$}}{
+        \For {$x \in V$} {
+            $k_x = \text{argmin}_{i \in \{1..k\}} |E(x,y)| \: \text{with} \: K(y)=i$\;
+            $K(x) := k_x$\;
+        }
+        \Return{K}
+    }
+\end{algorithm}
+
+For our proof we define three more sets:
+$$I_t=\{(x,y)\in I | K(x)\neq K(y) \land K(x), K(y) \neq null\}$$
+$$I_f=\{(x,y)\in I | K(x)=K(y) \land K(x), K(y) \neq null\}$$
+%$$I_?=\{(x,y)\in I | K(x)=\text{null}\lor K(y)={null}\}$$
+$I_t$ is a set of equations that are already satisfied by the algorithm. $I_f$ is a set of equations that are not satisfied by the algorithm. % Finally $I_?$ is a set of equations that have not been decided yet. 
+\\
+\\
+\begin{lemma}
+At every stage of the algorithm $|I_t| \geq (k-1) \: |I_f|$.
+\end{lemma}
+
+\begin{proof}
+Basecase: $I_t = I_f = \emptyset$
+\\
+Inductionstep: Assume $|I_t| \geq (k-1) \: |I_f|$ when we process $x$.
+We assign value $k_x$ to $x$, this gives us
+$$|I_t'|=|I_t|+\sum\limits_{\underset{i=1}{i \neq k_x}}^{k} \: |E(x,K_i)| 
+\geq |I_t|+(k-1)|E(x,K_{k_x})| \geq (k-1) \: |I_f| + (k-1) \: |E(x,K_{k_x})| = (k-1) \:|I_f'|$$
+Where $|I_t'|$ and $|I_f'|$ are the sets after assignment of the value to $x$.
+\end{proof}
+Since at the end of the algorithm all vertices have a value $|I_t|+|I_f|=|I|$. The solution of our algorithm satisfies $|I_t|$ equations and therefore $Alg=|I_t|$. Lemma 1.1 implies $$Alg \geq (1-\frac{1}{k})|I| \geq (1-\frac{1}{k}) Opt$$
+
+
+\bibliographystyle{IEEEtran}
+\bibliography{main}
+
+\end{document}

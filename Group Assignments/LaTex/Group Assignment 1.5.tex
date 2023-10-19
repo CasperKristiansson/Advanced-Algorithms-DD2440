@@ -1,0 +1,51 @@
+\documentclass{article}
+\usepackage{cite}
+\usepackage{graphicx} % Required for inserting images
+\usepackage{mathtools}
+\usepackage[linesnumbered,ruled,vlined]{algorithm2e}
+\usepackage[a4paper, total={6in, 8in}]{geometry}
+\usepackage{hyperref}
+\usepackage{amsmath}
+\usepackage{amsthm}
+\usepackage{xcolor}
+\newtheorem{theorem}{Theorem}[section]
+\newtheorem{lemma}[theorem]{Lemma}
+\usepackage{enumitem}
+
+\SetKwInOut{KwData}{Input}
+\SetKwInOut{KwResult}{Output}
+\SetKw{KwOr}{or}
+
+\title{Group 2: Assignment 1.5}
+\author{Niv Adam, David Kaufmann, Casper Kristiansson, Nicole Wijkman}
+\date{\today}
+
+\begin{document}
+
+\maketitle
+
+\section{E-Level Problem (1.5)}
+Let it be so that:
+
+$$k=\text{Number of infected computers}$$
+$$X=\text{Number of computers infected out of a pool of 10 randomly selected computers}$$
+
+\noindent The boss claims that $P(X \geq 1 | k \geq 0.1n) \geq 9/10$. Thus, to be able to either prove or refute the boss's claim, the probability $P(X = 0| k \geq 0.1n)$ of not selecting an infected computer when choosing 10 at random (provided that at least 10 percent of the computers are infected) must be calculated.
+
+\noindent The probability of $P(X=0|k\geq 0.1n)$ is given as
+$$P(X=0|k\geq 0.1n)=\prod\limits_{i=0}^{9} \frac{(n-i)-k}{n-i}$$
+That is due to the fact that we are choosing 10 computers without replacement. Therefore, the number of possible options decreases with every selection (given by $n-i$) but the number of infected computers (given by $k$) remains constant. It allows for the following estimation
+
+\begin{equation*}
+    \begin{split}
+    P(X=0|k\geq 0.1n)&=\prod\limits_{i=0}^{9} \frac{(n-i)-k}{n-i}\overbrace{\geq}^{k \geq 0.1n}\left( \frac{0.9n - 9}{n}\right) ^{10}\\ &=\left( 0.9- \frac{9}{n}\right)^{10}\underbrace{>}_{n>1000}\left( 0.9 - \frac{9}{1000}\right)^{10}>0.3153
+    \end{split}
+\end{equation*}
+It follows that
+$$P(X\geq 1|k\geq 0.1n)=1-\underbrace{P(X=0|k\geq 0.1n)}_{> 0.3153}<  0.6847 \overset{!}{<}\frac{9}{10}$$
+That refutes the claim.
+% \bibliographystyle{IEEEtran}
+% \bibliography{main}
+
+
+\end{document}
