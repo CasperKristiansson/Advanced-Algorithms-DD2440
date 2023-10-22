@@ -1,5 +1,6 @@
 mod utils;
-mod test;
+// TODO always comment out before uploading solution
+// mod test;
 
 use std::io::{self};
 use std::time::Instant;
@@ -54,34 +55,34 @@ fn greedy_tour(graph: &Graph) -> Vec<i32> {
     }
 
     // two-opt
-    // let mut improved = true;
-    // let mut iterations = 0;
-    // let max_iterations = 5;
-    //
-    // while improved /* && iterations < max_iterations */ && start_time.elapsed().as_millis() < 1800 {
-    //     improved = false;
-    //     for i in 0..tour.len() - 1 {
-    //         for j in i + 2..tour.len() {
-    //             if j != i && j != i + 1 {
-    //
-    //                 let old_1 = sparse_graph.get_neighbors(tour[i]).iter().find(|&&(a, _)| a == tour[i+1]);
-    //                 let old_2 = sparse_graph.get_neighbors(tour[j]).iter().find(|&&(a, _)| a == tour[(j + 1) % tour.len()]);
-    //                 let old_dist = old_1.unwrap().1 + old_2.unwrap().1;
-    //
-    //                 let new_1 = sparse_graph.get_neighbors(tour[i]).iter().find(|&&(a, _)| a == tour[j]);
-    //                 let new_2 = sparse_graph.get_neighbors(tour[i+1]).iter().find(|&&(a, _)| a == tour[(j + 1) % tour.len()]);
-    //                 let new_dist = new_1.unwrap().1 + new_2.unwrap().1;
-    //                 tour[i + 1..=j].reverse();
-    //
-    //                 if new_dist < old_dist {
-    //                     tour[i + 1..=j].reverse();
-    //                     improved = true;
-    //                 }
-    //             }
-    //         }
-    //     }
-    //     iterations += 1;
-    // }
+    /*let mut improved = true;
+    let mut iterations = 0;
+    let max_iterations = 5;
+
+    while improved /* && iterations < max_iterations */ && start_time.elapsed().as_millis() < 1800 {
+        improved = false;
+        for i in 0..tour.len() - 1 {
+            for j in i + 2..tour.len() {
+                if j != i && j != i + 1 {
+
+                    let old_1 = sparse_graph.get_neighbors(tour[i]).iter().find(|&&(a, _)| a == tour[i+1]);
+                    let old_2 = sparse_graph.get_neighbors(tour[j]).iter().find(|&&(a, _)| a == tour[(j + 1) % tour.len()]);
+                    let old_dist = old_1.unwrap().1 + old_2.unwrap().1;
+
+                    let new_1 = sparse_graph.get_neighbors(tour[i]).iter().find(|&&(a, _)| a == tour[j]);
+                    let new_2 = sparse_graph.get_neighbors(tour[i+1]).iter().find(|&&(a, _)| a == tour[(j + 1) % tour.len()]);
+                    let new_dist = new_1.unwrap().1 + new_2.unwrap().1;
+                    tour[i + 1..=j].reverse();
+
+                    if new_dist < old_dist {
+                        tour[i + 1..=j].reverse();
+                        improved = true;
+                    }
+                }
+            }
+        }
+        iterations += 1;
+    }*/
 
     tour
 }
@@ -93,7 +94,7 @@ fn main() {
     let stdin = io::stdin();
     let mut num_vecs = String::new();
     stdin.read_line(&mut num_vecs).expect("error");
-    let num = num_vecs.trim().parse().expect("error parsing int");
+    let num = num_vecs.trim().parse().expect("error parsing number");
     for _ in 0..num {
         let mut line = String::new();
         stdin.read_line(&mut line).unwrap();

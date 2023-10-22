@@ -1,5 +1,3 @@
-use std::collections::VecDeque;
-
 pub struct Graph {
     pub num_nodes: i32,
     // the index of the edge gives the two connected nodes
@@ -32,12 +30,6 @@ impl Graph {
             return self.edges[y as usize][(x-(y+1)) as usize];
         }
         self.edges[x as usize][(y-(x+1)) as usize]
-    }
-
-    pub(crate) fn get_vertices(&self, edge_index: i32) -> (i32, i32) {
-        let x = edge_index / self.num_nodes;
-        let y = edge_index % self.num_nodes;
-        (x, y)
     }
 
     pub(crate) fn get_edges_sorted(&self) -> Vec<(i32, i32)> {
@@ -83,19 +75,14 @@ impl SparseGraph {
         let mut stack = Vec::new();
         stack.push((0,0,0));
         while !stack.is_empty() {
-
             let (node, parent, index) = stack.pop().unwrap();
+            // return circle length if node was already visited
             if visited[node as usize] >= 0 {
                 return index - visited[node as usize];
             }
             visited[node as usize] = index;
-            if self.adjacency_list[node as usize].len() == 0 {
-                if stack.is_empty() && visited.iter().any(|&x| x == -1) {
-                    let unvisited = visited.iter().position(|&x| x == -1).unwrap() as i32;
-                    stack.push((unvisited, unvisited, 0));
-                }
-                continue;
-            } else {
+            // push the neighbors of the current node to the stack
+            if self.adjacency_list[node as usize].len() != 0 {
                 for neighbor in &self.adjacency_list[node as usize] {
                     if *neighbor == parent {
                         continue;
@@ -103,6 +90,12 @@ impl SparseGraph {
                         stack.push((*neighbor, node, index + 1));
                     }
                 }
+            }
+
+            // if the stack gets empty check if there is a node that has not been visited
+            if stack.is_empty() && visited.iter().any(|&x| x == -1) {
+                let unvisited = visited.iter().position(|&x| x == -1).unwrap() as i32;
+                stack.push((unvisited, unvisited, 0));
             }
 
         }
