@@ -1,6 +1,6 @@
 mod utils;
 // TODO always comment out before uploading solution
-// mod test;
+//mod test;
 
 use std::io::{self};
 use std::time::Instant;
@@ -55,24 +55,24 @@ fn greedy_tour(graph: &Graph) -> Vec<i32> {
     }
 
     // two-opt
-    /*let mut improved = true;
+    let mut improved = true;
     let mut iterations = 0;
     let max_iterations = 5;
 
-    while improved /* && iterations < max_iterations */ && start_time.elapsed().as_millis() < 1800 {
+    while improved /* && iterations < max_iterations */ &&  start_time.elapsed().as_millis() < 1800 {
         improved = false;
         for i in 0..tour.len() - 1 {
-            for j in i + 2..tour.len() {
+            for j in i + 2..tour.len() - 1 {
                 if j != i && j != i + 1 {
 
-                    let old_1 = sparse_graph.get_neighbors(tour[i]).iter().find(|&&(a, _)| a == tour[i+1]);
-                    let old_2 = sparse_graph.get_neighbors(tour[j]).iter().find(|&&(a, _)| a == tour[(j + 1) % tour.len()]);
-                    let old_dist = old_1.unwrap().1 + old_2.unwrap().1;
+                    let old_1 = graph.get_edge(tour[i], tour[i+1]);
+                    let old_2 = graph.get_edge(tour[j], tour[(j + 1) % tour.len()]);
+                    let old_dist = old_1 + old_2;
 
-                    let new_1 = sparse_graph.get_neighbors(tour[i]).iter().find(|&&(a, _)| a == tour[j]);
-                    let new_2 = sparse_graph.get_neighbors(tour[i+1]).iter().find(|&&(a, _)| a == tour[(j + 1) % tour.len()]);
-                    let new_dist = new_1.unwrap().1 + new_2.unwrap().1;
-                    tour[i + 1..=j].reverse();
+                    let new_1 = graph.get_edge(tour[i], tour[j]);
+                    let new_2 = graph.get_edge(tour[i+1], tour[(j + 1) % tour.len()]);
+                    let new_dist = new_1 + new_2;
+                    // tour[i + 1..=j].reverse();
 
                     if new_dist < old_dist {
                         tour[i + 1..=j].reverse();
@@ -82,7 +82,7 @@ fn greedy_tour(graph: &Graph) -> Vec<i32> {
             }
         }
         iterations += 1;
-    }*/
+    }
 
     tour
 }
