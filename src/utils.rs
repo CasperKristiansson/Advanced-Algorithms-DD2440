@@ -70,10 +70,10 @@ impl SparseGraph {
         self.adjacency_list[y as usize].swap_remove(index);
     }
 
-    pub(crate) fn contains_circle(&self) -> i32 {
+    pub(crate) fn get_circle(&self, start_vertex: i32) -> i32 {
         let mut visited = vec![-1; self.num_nodes as usize];
         let mut stack = Vec::new();
-        stack.push((0,0,0));
+        stack.push((start_vertex,start_vertex,0));
         while !stack.is_empty() {
             let (node, parent, index) = stack.pop().unwrap();
             // return circle length if node was already visited
@@ -93,10 +93,10 @@ impl SparseGraph {
             }
 
             // if the stack gets empty check if there is a node that has not been visited
-            if stack.is_empty() && visited.iter().any(|&x| x == -1) {
+            /*if stack.is_empty() && visited.iter().any(|&x| x == -1) {
                 let unvisited = visited.iter().position(|&x| x == -1).unwrap() as i32;
                 stack.push((unvisited, unvisited, 0));
-            }
+            }*/
 
         }
         -1

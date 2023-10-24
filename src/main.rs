@@ -1,6 +1,6 @@
 mod utils;
 // TODO always comment out before uploading solution
-//mod test;
+// mod test;
 
 use std::io::{self};
 use std::time::Instant;
@@ -40,7 +40,7 @@ fn greedy_tour(graph: &Graph) -> Vec<i32> {
         let (x, y) = sorted.pop().unwrap();
         if sparse_graph.get_vertex_degree(x) < 2 && sparse_graph.get_vertex_degree(y) < 2 {
             sparse_graph.add_edge(x, y);
-            let circle_length = sparse_graph.contains_circle();
+            let circle_length = sparse_graph.get_circle(x);
             if circle_length >= 0 && circle_length < n {
                 sparse_graph.remove_edge(x, y);
             }
