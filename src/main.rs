@@ -4,7 +4,7 @@ mod utils;
 
 use std::io::{self};
 use std::time::Instant;
-use crate::utils::{euclidean_distance, Graph};
+use crate::utils::{Graph};
 use crate::utils::SparseGraph;
 
 fn nearest_neighbor_tour(points: &Vec<(f64, f64)>) -> Vec<i32> {
@@ -106,7 +106,7 @@ fn main() {
     }
     // let result = greedy_tour(&points);
 
-    let graph = utils::Graph::new(&points);
+    let graph = Graph::new(&points);
 
     // for i in 0..graph.num_nodes {
     //     for j in 0..graph.num_nodes {

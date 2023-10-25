@@ -43,6 +43,27 @@ impl Graph {
         edges_vec.reverse();
         edges_vec
     }
+
+    // Kruskal's algorithm
+    pub(crate) fn get_min_spanning_tree(&self) -> SparseGraph {
+        let mut sorted = self.get_edges_sorted();
+        let mut sparse_graph = SparseGraph::new(self.num_nodes);
+
+        let mut edge_count = 0;
+        while !sorted.is_empty() && edge_count < self.num_nodes - 1 {
+            let (x, y) = sorted.pop().unwrap();
+            if sparse_graph.get_vertex_degree(x) < 2 && sparse_graph.get_vertex_degree(y) < 2 {
+                sparse_graph.add_edge(x, y);
+                edge_count += 1;
+                let circle_length = sparse_graph.get_circle(x);
+                if circle_length >= 0 {
+                    sparse_graph.remove_edge(x, y);
+                    edge_count -= 1;
+                }
+            }
+        }
+        sparse_graph
+    }
 }
 
 pub struct SparseGraph {
