@@ -1,3 +1,5 @@
+use std::time::Instant;
+
 pub struct Graph {
     pub num_nodes: i32,
     // the index of the edge gives the two connected nodes
@@ -134,4 +136,138 @@ impl SparseGraph {
 
 pub fn euclidean_distance((x1, y1): (f64, f64), (x2, y2): (f64, f64)) -> i32 {
         ((x1 - x2).powi(2) + (y1 - y2).powi(2)).sqrt().round() as i32
+}
+
+pub fn two_opt(graph: &Graph, mut tour:Vec<i32>, start_time:Instant, max_processing_ms: u128) -> Vec<i32> {
+    let mut improved = true;
+
+    while improved &&  start_time.elapsed().as_millis() < max_processing_ms {
+        improved = false;
+        for i in 0..tour.len() - 1 {
+            for j in i + 2..tour.len() - 1 {
+                if j != i && j != i + 1 {
+
+                    let old_1 = graph.get_edge(tour[i], tour[i+1]);
+                    let old_2 = graph.get_edge(tour[j], tour[(j + 1) % tour.len()]);
+                    let old_dist = old_1 + old_2;
+
+                    let new_1 = graph.get_edge(tour[i], tour[j]);
+                    let new_2 = graph.get_edge(tour[i+1], tour[(j + 1) % tour.len()]);
+                    let new_dist = new_1 + new_2;
+                    // tour[i + 1..=j].reverse();
+
+                    if new_dist < old_dist {
+                        tour[i + 1..=j].reverse();
+                        improved = true;
+                    }
+                }
+            }
+        }
+    }
+
+    tour
+}
+
+pub fn three_opt(graph: &Graph, mut tour:Vec<i32>, start_time:Instant, max_processing_ms: u128) -> Vec<i32> {
+    let mut improved = true;
+
+    while improved &&  start_time.elapsed().as_millis() < max_processing_ms {
+        improved = false;
+        for i in 0..tour.len() - 1 {
+            for j in i + 2..tour.len() - 1 {
+                for k in j + 2..tour.len() - 1 {
+                    if j != i && j != i + 1 && k != i && k != i + 1 && k != j && k != j + 1 {
+
+                        let old_1 = graph.get_edge(tour[i], tour[i+1]);
+                        let old_2 = graph.get_edge(tour[j], tour[(j + 1) % tour.len()]);
+                        let old_3 = graph.get_edge(tour[k], tour[(k + 1) % tour.len()]);
+                        let old_dist = old_1 + old_2 + old_3;
+
+                        let mut best_dist = old_dist;
+                        let mut flip:Vec<i32> = Vec::new();
+
+                        // one-flip options
+                        let new_1 = graph.get_edge(tour[i], tour[j]);
+                        let new_2 = graph.get_edge(tour[i+1], tour[(j + 1) % tour.len()]);
+                        let new_3 = graph.get_edge(tour[k], tour[(k + 1) % tour.len()]);
+                        if (new_1 + new_2 + new_3) < best_dist {
+                            best_dist = new_1 + new_2 + new_3;
+                            flip = vec![0];
+                        }
+
+                        let new_1 = graph.get_edge(tour[i], tour[i+1]);
+                        let new_2 = graph.get_edge(tour[j], tour[k]);
+                        let new_3 = graph.get_edge(tour[(j + 1) % tour.len()], tour[(k + 1) % tour.len()]);
+                        if (new_1 + new_2 + new_3) < best_dist {
+                            best_dist = new_1 + new_2 + new_3;
+                            flip = vec![1];
+                        }
+
+                        let new_1 = graph.get_edge(tour[i], tour[k]);
+                        let new_2 = graph.get_edge(tour[(i + 1) % tour.len()], tour[(k + 1) % tour.len()]);
+                        let new_3 = graph.get_edge(tour[j], tour[(j + 1) % tour.len()]);
+                        if (new_1 + new_2 + new_3) < best_dist {
+                            best_dist = new_1 + new_2 + new_3;
+                            flip = vec![2];
+                        }
+
+                        // two-flip options
+                        let new_1 = graph.get_edge(tour[i], tour[(j+1) % tour.len()]);
+                        let new_2 = graph.get_edge(tour[(i + 1) % tour.len()], tour[(k + 1) % tour.len()]);
+                        let new_3 = graph.get_edge(tour[k], tour[j]);
+                        if (new_1 + new_2 + new_3) < best_dist {
+                            best_dist = new_1 + new_2 + new_3;
+                            flip = vec![1, 2];
+                        }
+
+                        let new_1 = graph.get_edge(tour[i], tour[k]);
+                        let new_2 = graph.get_edge(tour[(i + 1) % tour.len()], tour[(j+1) % tour.len()]);
+                        let new_3 = graph.get_edge(tour[j], tour[(k + 1) % tour.len()]);
+                        if (new_1 + new_2 + new_3) < best_dist {
+                            best_dist = new_1 + new_2 + new_3;
+                            flip = vec![0, 2];
+                        }
+
+                        let new_1 = graph.get_edge(tour[i], tour[j]);
+                        let new_2 = graph.get_edge(tour[(i + 1) % tour.len()], tour[k]);
+                        let new_3 = graph.get_edge(tour[(j + 1) % tour.len()], tour[(k + 1) % tour.len()]);
+                        if (new_1 + new_2 + new_3) < best_dist {
+                            best_dist = new_1 + new_2 + new_3;
+                            flip = vec![0, 1];
+                        }
+
+                        // three-flip options
+                        let new_1 = graph.get_edge(tour[i], tour[(j+1) % tour.len()]);
+                        let new_2 = graph.get_edge(tour[(i + 1) % tour.len()], tour[k]);
+                        let new_3 = graph.get_edge(tour[j], tour[(k + 1) % tour.len()]);
+                        if (new_1 + new_2 + new_3) < best_dist {
+                            best_dist = new_1 + new_2 + new_3;
+                            flip = vec![0, 1, 2];
+                        }
+
+
+                        // choose best and apply
+                        if (best_dist <old_dist) {
+                            for f in flip {
+                                match f {
+                                    0 => tour[i + 1..=j].reverse(),
+                                    1 => tour[j + 1..=k].reverse(),
+                                    2 => tour[i + 1..=k].reverse(),
+                                    _ => panic!("Invalid flip")
+                                }
+                            }
+                        }
+
+                        if (start_time.elapsed().as_millis() >= max_processing_ms) {
+                            return tour;
+                        }
+
+
+                    }
+                }
+            }
+        }
+    }
+
+    tour
 }
