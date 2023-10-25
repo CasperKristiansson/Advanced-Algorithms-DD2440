@@ -1,4 +1,5 @@
 mod utils;
+mod lin_kernighan_opt;
 // TODO always comment out before uploading solution
 mod test;
 
