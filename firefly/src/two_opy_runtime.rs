@@ -135,7 +135,7 @@ fn main() {
         points.push((coords[0], coords[1]));
     }
 
-    let num_fireflies = 15;
+    let num_fireflies = (num_points as f64).sqrt().round() as usize;
     let mut fireflies: Vec<Vec<usize>> = Vec::with_capacity(num_fireflies);
     let beta0 = 1.0;
     let gamma = 0.1;

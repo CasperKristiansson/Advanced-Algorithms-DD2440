@@ -67,13 +67,6 @@ fn total_distance_from_matrix(path: &[usize], matrix: &[Vec<f64>]) -> f64 {
     dist + distance_from_matrix(&matrix, path[0], path[path.len() - 1])
 }
 
-// fn two_opt_swap(route: &[usize], i: usize, k: usize) -> Vec<usize> {
-//     let mut new_route = route[0..i].to_vec();
-//     new_route.extend(route[i..=k].iter().rev());
-//     new_route.extend(&route[k+1..]);
-//     new_route
-// }
-
 fn move_firefly(rng: &mut SimpleRng, mut firefly_i: Vec<usize>, firefly_j: &[usize], matrix: &[Vec<f64>], beta0: f64, gamma: f64) -> Vec<usize> {
     let firefly_i_distance = total_distance_from_matrix(&firefly_i, matrix);
     let firefly_j_distance = total_distance_from_matrix(firefly_j, matrix);
@@ -87,14 +80,12 @@ fn move_firefly(rng: &mut SimpleRng, mut firefly_i: Vec<usize>, firefly_j: &[usi
             if i < k { (i, k) } else { (k, i) }
         };
 
-        // Swap in-place without cloning
         firefly_i[i + 1..=k].reverse();
         let new_dist = total_distance_from_matrix(&firefly_i, matrix);
 
         if new_dist < firefly_i_distance || rng.next_f64() < (-gamma * (new_dist - firefly_i_distance)).exp() {
             break;
         } else {
-            // Undo the swap if it didn't improve the path
             firefly_i[i + 1..=k].reverse();
         }
     }
@@ -144,7 +135,7 @@ fn main() {
         points.push((coords[0], coords[1]));
     }
 
-    let num_fireflies = 15;
+    let num_fireflies = (num_points as f64).sqrt().round() as usize;
     let mut fireflies: Vec<Vec<usize>> = Vec::with_capacity(num_fireflies);
     let beta0 = 1.0;
     let gamma = 0.1;
