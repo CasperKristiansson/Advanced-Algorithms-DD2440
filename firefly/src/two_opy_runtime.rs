@@ -1,4 +1,4 @@
-use std::time::{SystemTime, UNIX_EPOCH};
+use std::time::SystemTime;
 use std::f64;
 use std::io;
 
@@ -36,7 +36,9 @@ impl SimpleRng {
 }
 
 fn distance(p1: (f64, f64), p2: (f64, f64)) -> f64 {
-    ((p1.0 - p2.0).powi(2) + (p1.1 - p2.1).powi(2)).sqrt()
+    let dx = p1.0 - p2.0;
+    let dy = p1.1 - p2.1;
+    (dx * dx + dy * dy).sqrt()
 }
 
 fn total_distance(path: &[usize], points: &[(f64, f64)]) -> f64 {
@@ -123,9 +125,8 @@ fn main() {
     let gamma = 0.1;
 
     let start_time = SystemTime::now();
-    let max_duration = std::time::Duration::new(1, 950_000_000);
-    let start_timestamp = start_time.duration_since(UNIX_EPOCH).expect("Time went backwards").as_secs();
-    let mut rng = SimpleRng::new(start_timestamp);
+    let max_duration = std::time::Duration::new(1, 900_000_000);
+    let mut rng = SimpleRng::new(1698506886);
 
     for _ in 0..num_fireflies {
         let mut firefly: Vec<usize> = (0..num_points).collect();
@@ -133,7 +134,7 @@ fn main() {
         fireflies.push(firefly);
     }
 
-    let two_opt_time = std::time::Duration::new(0, 500_000_000 / num_fireflies as u32);
+    let two_opt_time = std::time::Duration::new(0, 900_000_000 / num_fireflies as u32);
 
     for firefly in &mut fireflies {
         two_opt(firefly, &points, two_opt_time);
