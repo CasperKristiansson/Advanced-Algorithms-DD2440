@@ -41,11 +41,27 @@ fn distance(p1: (f64, f64), p2: (f64, f64)) -> f64 {
     (dx * dx + dy * dy).sqrt()
 }
 
-fn total_distance(path: &[usize], points: &[(f64, f64)]) -> f64 {
+fn compute_distance_matrix(points: &[(f64, f64)]) -> Vec<Vec<f64>> {
+    let mut matrix = vec![vec![0.0; points.len()]; points.len()];
+    for i in 0..points.len() {
+        for j in i+1..points.len() {
+            let dist = distance(points[i], points[j]);
+            matrix[i][j] = dist;
+            matrix[j][i] = dist;
+        }
+    }
+    matrix
+}
+
+fn distance_from_matrix(matrix: &[Vec<f64>], i: usize, j: usize) -> f64 {
+    matrix[i][j]
+}
+
+fn total_distance_from_matrix(path: &[usize], matrix: &[Vec<f64>]) -> f64 {
     let dist: f64 = path.windows(2)
-        .map(|w| distance(points[w[0]], points[w[1]]))
+        .map(|w| distance_from_matrix(&matrix, w[0], w[1]))
         .sum();
-    dist + distance(points[path[0]], points[path[path.len() - 1]])
+    dist + distance_from_matrix(&matrix, path[0], path[path.len() - 1])
 }
 
 fn two_opt_swap(route: &[usize], i: usize, k: usize) -> Vec<usize> {
@@ -55,9 +71,9 @@ fn two_opt_swap(route: &[usize], i: usize, k: usize) -> Vec<usize> {
     new_route
 }
 
-fn move_firefly(rng: &mut SimpleRng, firefly_i: Vec<usize>, firefly_j: &[usize], points: &[(f64, f64)], beta0: f64, gamma: f64) -> Vec<usize> {
+fn move_firefly(rng: &mut SimpleRng, firefly_i: Vec<usize>, firefly_j: &[usize], matrix: &[Vec<f64>], beta0: f64, gamma: f64) -> Vec<usize> {
     let mut new_firefly_i = firefly_i.clone();
-    let dist_diff = total_distance(&firefly_i, points) - total_distance(firefly_j, points);
+    let dist_diff = total_distance_from_matrix(&firefly_i, matrix) - total_distance_from_matrix(firefly_j, matrix);
     let beta = beta0 * (-gamma * dist_diff).exp();
 
     for _ in 0..((beta * (firefly_i.len() as f64)) as usize) {
@@ -67,8 +83,8 @@ fn move_firefly(rng: &mut SimpleRng, firefly_i: Vec<usize>, firefly_j: &[usize],
             if i < k { (i, k) } else { (k, i) }
         };
         new_firefly_i = two_opt_swap(&new_firefly_i, i, k);
-        let new_dist = total_distance(&new_firefly_i, points);
-        let old_dist = total_distance(&firefly_i, points);
+        let new_dist = total_distance_from_matrix(&new_firefly_i, matrix);
+        let old_dist = total_distance_from_matrix(&firefly_i, matrix);
 
         if new_dist < old_dist || rng.next_f64() < (-gamma * (new_dist - old_dist)).exp() {
             return new_firefly_i;
@@ -77,7 +93,7 @@ fn move_firefly(rng: &mut SimpleRng, firefly_i: Vec<usize>, firefly_j: &[usize],
     firefly_i
 }
 
-fn two_opt(path: &mut Vec<usize>, points: &[(f64, f64)], max_duration: std::time::Duration) {
+fn two_opt(path: &mut Vec<usize>, matrix: &[Vec<f64>], max_duration: std::time::Duration) {
     let mut improved = true;
     let start_time = SystemTime::now();
 
@@ -86,10 +102,11 @@ fn two_opt(path: &mut Vec<usize>, points: &[(f64, f64)], max_duration: std::time
         for i in 0..path.len() - 1 {
             for j in i + 2..path.len() {
                 if j != i && j != i + 1 {
-                    let old_dist = distance(points[path[i]], points[path[i + 1]]) + 
-                                   distance(points[path[j]], points[path[(j + 1) % path.len()]]);
-                    let new_dist = distance(points[path[i]], points[path[j]]) + 
-                                   distance(points[path[i + 1]], points[path[(j + 1) % path.len()]]);
+                    let old_dist = distance_from_matrix(&matrix, path[i], path[i + 1]) + 
+                                   distance_from_matrix(&matrix, path[j], path[(j + 1) % path.len()]);
+                    let new_dist = distance_from_matrix(&matrix, path[i], path[j]) + 
+                                   distance_from_matrix(&matrix, path[i + 1], path[(j + 1) % path.len()]);
+     
                     if new_dist < old_dist {
                         path[i + 1..=j].reverse();
                         improved = true;
@@ -126,7 +143,7 @@ fn main() {
 
     let start_time = SystemTime::now();
     let max_duration = std::time::Duration::new(1, 900_000_000);
-    let mut rng = SimpleRng::new(1698506886);
+    let mut rng = SimpleRng::new(1698508300);
 
     for _ in 0..num_fireflies {
         let mut firefly: Vec<usize> = (0..num_points).collect();
@@ -134,10 +151,12 @@ fn main() {
         fireflies.push(firefly);
     }
 
-    let two_opt_time = std::time::Duration::new(0, 900_000_000 / num_fireflies as u32);
+    let two_opt_time = std::time::Duration::new(0, 800_000_000 / num_fireflies as u32);
+
+    let matrix = compute_distance_matrix(&points);
 
     for firefly in &mut fireflies {
-        two_opt(firefly, &points, two_opt_time);
+        two_opt(firefly, &matrix, two_opt_time);
         if start_time.elapsed().unwrap() > max_duration {
             break;
         }
@@ -148,14 +167,14 @@ fn main() {
 
     while start_time.elapsed().unwrap() <= max_duration {
         let mut distances: Vec<f64> = fireflies.iter()
-            .map(|f| total_distance(f, &points))
+            .map(|f| total_distance_from_matrix(f, &matrix))
             .collect();
 
         for i in 0..num_fireflies {
             for j in 0..num_fireflies {
                 if distances[i] > distances[j] {
-                    fireflies[i] = move_firefly(&mut rng, fireflies[i].clone(), &fireflies[j], &points, beta0, gamma);
-                    distances[i] = total_distance(&fireflies[i], &points);
+                    fireflies[i] = move_firefly(&mut rng, fireflies[i].clone(), &fireflies[j], &matrix, beta0, gamma);
+                    distances[i] = total_distance_from_matrix(&fireflies[i], &matrix);
                 }
             }
         }
