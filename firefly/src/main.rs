@@ -135,13 +135,13 @@ fn main() {
         points.push((coords[0], coords[1]));
     }
 
-    let num_fireflies = (num_points as f64).sqrt().round() as usize;
+    let num_fireflies = ((num_points * 2) as f64).sqrt().round() as usize;
     let mut fireflies: Vec<Vec<usize>> = Vec::with_capacity(num_fireflies);
-    let beta0 = 1.0;
-    let gamma = 0.1;
+    let beta0 = 1.0 / num_points as f64;
+    let gamma = 1.0 / (num_points as f64).log(2.0);
 
     let start_time = SystemTime::now();
-    let max_duration = std::time::Duration::new(1, 900_000_000);
+    let max_duration = std::time::Duration::new(1, 850_000_000);
     let mut rng = SimpleRng::new(1698508300);
 
     for _ in 0..num_fireflies {
@@ -150,7 +150,7 @@ fn main() {
         fireflies.push(firefly);
     }
 
-    let two_opt_time = std::time::Duration::new(0, 800_000_000 / num_fireflies as u32);
+    let two_opt_time = std::time::Duration::new(0, 750_000_000);
 
     let matrix = compute_distance_matrix(&points);
 
