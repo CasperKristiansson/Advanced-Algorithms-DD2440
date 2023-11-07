@@ -92,34 +92,52 @@ fn move_firefly(rng: &mut SimpleRng, mut firefly_i: Vec<usize>, firefly_j: &[usi
     firefly_i
 }
 
-fn two_opt(path: &mut Vec<usize>, matrix: &[Vec<f64>], max_duration: std::time::Duration) {
+fn three_opt(path: &mut Vec<usize>, matrix: &[Vec<f64>], max_duration: std::time::Duration) {
     let mut improved = true;
     let start_time = SystemTime::now();
 
     while improved {
         improved = false;
-        for i in 0..path.len() - 1 {
-            for j in i + 2..path.len() {
-                if j != i && j != i + 1 {
-                    let old_dist = distance_from_matrix(&matrix, path[i], path[i + 1]) + 
-                                   distance_from_matrix(&matrix, path[j], path[(j + 1) % path.len()]);
-                    let new_dist = distance_from_matrix(&matrix, path[i], path[j]) + 
-                                   distance_from_matrix(&matrix, path[i + 1], path[(j + 1) % path.len()]);
-     
-                    if new_dist < old_dist {
-                        path[i + 1..=j].reverse();
+
+        'outer: for i in 0..path.len() - 2 {
+            if start_time.elapsed().unwrap() > max_duration {
+                break;
+            }
+            for j in i + 2..path.len() - 1 {
+                for k in j + 2..path.len() {
+                    if k == path.len() - 1 && i == 0 {
+                        continue;
+                    }
+                    let (a, b, c, d, e, f) = (
+                        path[i], path[i + 1],
+                        path[j], path[j + 1],
+                        path[k], path[(k + 1) % path.len()],
+                    );
+
+                    let current_distance = distance_from_matrix(matrix, a, b) +
+                                           distance_from_matrix(matrix, c, d) +
+                                           distance_from_matrix(matrix, e, f);
+
+                    let new_distance = distance_from_matrix(matrix, a, c) +
+                                       distance_from_matrix(matrix, b, e) +
+                                       distance_from_matrix(matrix, d, f);
+
+                    if new_distance < current_distance {
+                        path[i + 1..j + 1].reverse();
+                        path[j + 1..k + 1].reverse();
+
                         improved = true;
+                        continue 'outer;
                     }
                 }
             }
         }
-    
+
         if start_time.elapsed().unwrap() > max_duration {
             break;
         }
     }
 }
-   
 
 fn main() {
     let stdin = io::stdin();
@@ -141,7 +159,6 @@ fn main() {
     let gamma = 1.0 / (num_points as f64).log(2.0);
 
     let start_time = SystemTime::now();
-    let max_duration = std::time::Duration::new(1, 850_000_000);
     let mut rng = SimpleRng::new(1698508300);
 
     for _ in 0..num_fireflies {
@@ -150,15 +167,13 @@ fn main() {
         fireflies.push(firefly);
     }
 
-    let two_opt_time = std::time::Duration::new(0, 750_000_000);
+    let max_duration = std::time::Duration::new(1, 900_000_000);
+    let two_opt_time = std::time::Duration::new(0, 1_200_000_000 / num_fireflies as u32);
 
     let matrix = compute_distance_matrix(&points);
 
     for firefly in &mut fireflies {
-        two_opt(firefly, &matrix, two_opt_time);
-        if start_time.elapsed().unwrap() > max_duration {
-            break;
-        }
+        three_opt(firefly, &matrix, two_opt_time);
     }
 
     let mut best_firefly_index = 0;
