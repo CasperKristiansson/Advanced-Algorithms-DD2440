@@ -1,0 +1,113 @@
+\documentclass{article}
+\usepackage{cite}
+\usepackage{graphicx} % Required for inserting images
+\usepackage{mathtools}
+\usepackage[linesnumbered,ruled,vlined]{algorithm2e}
+\usepackage[a4paper, total={6in, 8in}]{geometry}
+\usepackage{hyperref}
+\usepackage{amsmath}
+\usepackage{amsthm}
+\usepackage{xcolor}
+\newtheorem{theorem}{Theorem}[section]
+\newtheorem{lemma}[theorem]{Lemma}
+\usepackage{enumitem}
+
+\SetKwInOut{KwData}{Input}
+\SetKwInOut{KwResult}{Output}
+\SetKw{KwOr}{or}
+
+\title{Individual Assignment}
+\author{Casper Kristiansson}
+\date{\today}
+
+\begin{document}
+
+\maketitle
+
+\section{E-Level Problem (Problem 3)}
+
+\noindent Let \(X_{i}\) be an indicator of the random variable for the \textit{i}-th student assigned to a given house (e.g. house 1).
+
+\begin{equation}
+\begin{cases} 
+1 & \text{if the \textit{i}-th student is assigned to a specific house (e.g. house 1)} \\
+0 & \text{otherwise} 
+\end{cases}
+\end{equation}
+
+\noindent Let \(X\) be the number of students assigned to a specific house (e.g. house 1). For this solution. This means that we can represent X as the sum of the \(X_{i}\) for the given house.
+
+\[X = \sum_{i=1}^{n} X_i\]
+
+\noindent Let \(n\) be the total number of students. Based on this the expected number of students in a specific house (e.g. house 1) is:
+
+\[
+E[X]=E[\sum_{i=1}^{n} X_i]=\sum_{i=1}^{n}E[X_i]=\frac{n}{4}
+\]
+
+\noindent The Hat claims that, with a probability of at least \(0.99\), the number of students in each house \(X\) is between \(0.23n\) and \(0.27n\). This can be stated as \(P(0.23n < X < 0.27n) \geq 0.99\). Thus, to be able to either prove or disprove the hat's claim, the probability we are interested in is given by \(P(X \leq 0.23n) + P(X \geq 0.27n)\). If the sum of these probabilities is less than 0.01, then the hat's claim holds true otherwise it does not.
+
+\vspace{1em}
+
+\noindent Because we are dealing with independent Bernoulli trials with a large number of trials we can use Chernoff Bound to define a lower and upper bound to solve the problem. Chernoff Bound is defined as \cite{harvey2014cpsc536n}:
+
+\begin{align*}
+\Pr \left[ X \geq (1 + \delta) \mu_{\text{max}} \right] &\leq \left(\frac{e^{\delta}}{(1+\delta)^{1+\delta}} \right)^{\mu_{\text{max}}} \\
+\Pr \left[ X \leq (1 - \delta) \mu_{\text{min}} \right] &\leq \left(\frac{e^{-\delta}}{(1-\delta)^{1-\delta}} \right)^{\mu_{\text{min}}}
+\end{align*}
+
+\noindent We can than solve for \(\delta\) for both the lower and upper:
+
+\begin{align*}
+\text{For the upper bound we have } E[X] \times (1+ \delta)=0.27n \\
+1 + \delta = 0.27 \times 4 \\
+\delta = 0.08
+\end{align*}
+
+\begin{align*}
+\text{For the lower bound we have } E[X] \times (1 - \delta)=0.23n \\
+1 - \delta = 0.23 \times 4 \\
+\delta = 0.08
+\end{align*}
+
+\vspace{1em}
+
+\noindent Using the Chernoff Bound for the upper bound:
+
+\begin{align*}
+\Pr \left[ X \geq (1 + \delta) \mu_{\text{max}} \right] &\leq \left(\frac{e^{\delta}}{(1+\delta)^{1+\delta}} \right)^{\mu_{\text{max}}}
+\end{align*}
+
+\noindent By plugging in the values with \(n=10000\):
+
+\begin{align*}
+\Pr \left[ X \geq 1.08 \times \frac{10000}{4} \right] &\leq \left(\frac{e^{0.08}}{1.08^{1.08}} \right)^{\frac{10000}{4}} \\ \\
+\Pr \left[ X \geq 2700 \right] &\leq \left(\frac{e^{0.08}}{1.08^{1.08}} \right)^{2500}
+\end{align*}
+
+\noindent Using the Chernoff Bound for the lower bound:
+
+\begin{align*}
+\Pr \left[ X \leq (1 - \delta) \mu_{\text{min}} \right] &\leq \left(\frac{e^{-\delta}}{(1-\delta)^{1-\delta}} \right)^{\mu_{\text{min}}}
+\end{align*}
+
+\noindent By plugging in the values with \(n=10000\):
+
+\begin{align*}
+\Pr \left[ X \leq 0.92 \times \frac{10000}{4} \right] &\leq \left(\frac{e^{-0.08}}{0.92^{0.92}} \right)^{\frac{10000}{4}} \\ \\ 
+\Pr \left[ X \leq 2300 \right] &\leq \left(\frac{e^{-0.08}}{0.92^{0.92}} \right)^{2500}
+\end{align*}
+
+\noindent With the Chernoff Bounds we can add them together to see if they add up to more or less than what the hat stated:
+
+\begin{align*}
+\left(\frac{e^{0.08}}{1.08^{1.08}} \right)^{2500} + \left(\frac{e^{-0.08}}{0.92^{0.92}} \right)^{2500} \leq 0.01 \\
+0.00068 \leq 0.01
+\end{align*}
+
+\noindent Under the assumptions of independence and randomness, the calculations support the Hat's claim: with a probability over 0.99, all houses would receive between 23\% and 27\% of the 10000 or more students.
+
+\bibliographystyle{IEEEtran}
+\bibliography{main}
+
+\end{document}
