@@ -1,15 +1,14 @@
 mod utils;
-mod blossom;
+
 // mod lin_kernighan_opt;
 // TODO always comment out before uploading solution
 mod test;
-
+mod blossom;
 
 use std::collections::HashMap;
 use std::io::{self};
 use std::time::Instant;
-use blossom::{Vertex, WeightedGraph};
-use blossom::graph::AnnotatedGraph;
+use blossom::{Vertex, WeightedGraph, AnnotatedGraph};
 use crate::utils::{euclidean_distance, Graph, three_opt, two_opt};
 use crate::utils::SparseGraph;
 

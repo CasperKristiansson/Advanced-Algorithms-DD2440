@@ -1,27 +1,182 @@
+pub type Vertex = usize;
+pub type Edge = (Vertex, Vertex);
+
+
 use std::collections::{HashMap, HashSet};
 use std::iter;
 use std::iter::FromIterator;
 
-//use crate::Matching;
-use crate::blossom::Matching;
-use crate::Vertex;
-use crate::blossom::forest::Forest;
-//use crate::forest::Forest;
-//use crate::unweighted::Graph;
-use crate::blossom::unweighted::Graph;
+/// Gets the connected groups in the graph
+pub fn connected_groups(graph: &Graph) -> Vec<Vec<Vertex>> {
+    let mut groups = vec![];
+    let mut seen = HashSet::new();
+    let mut todo = HashSet::new();
+
+    loop {
+        for &v in graph.vertices() {
+            if seen.insert(v) {
+                todo.insert(v);
+                break;
+            }
+        }
+
+        if todo.is_empty() {
+            return groups;
+        }
+
+        while let Some(&v) = todo.iter().next() {
+            todo.remove(&v);
+            for &e in graph.vertices_from(v) {
+                if seen.insert(e) {
+                    todo.insert(e);
+                }
+            }
+        }
+
+        groups.push(seen.iter().cloned().collect());
+    }
+}
+
+
+
+
+pub struct Forest {
+    trees: HashMap<Vertex, Vec<Vertex>>,
+}
+
+impl Forest {
+    pub fn new() -> Forest {
+        Forest {
+            trees: HashMap::new(),
+        }
+    }
+
+    pub fn from_singletons(vertices: &[Vertex]) -> Forest {
+        Forest {
+            trees: vertices.iter().map(|&x| (x, vec![x])).collect(),
+        }
+    }
+
+    pub fn depth(&self, vertex: Vertex) -> Option<usize> {
+        self.trees.get(&vertex).map(|p| p.len())
+    }
+
+    pub fn find_path(&self, vertex: Vertex) -> Option<&[Vertex]> {
+        self.trees.get(&vertex).map(|p| &p[..])
+    }
+
+    pub fn push(&mut self, v: Vertex, p: Vec<Vertex>) {
+        self.trees.insert(v, p);
+    }
+
+    pub fn append(&mut self, other: &mut Forest) {
+        for (v, p) in other.trees.drain() {
+            self.trees.insert(v, p);
+        }
+    }
+}
+
+
+
+
+
+
+/// Represents a matching in a graph.
+#[derive(Clone, Debug)]
+pub struct Matching {
+    edges: HashMap<Vertex, Vertex>,
+}
+
+impl Matching {
+    /// Create a new matching from given edges
+    pub fn new(edges: &[Edge]) -> Matching {
+        let mut map = HashMap::new();
+        for &(v, w) in edges {
+            map.insert(v, w);
+            map.insert(w, v);
+        }
+        Matching { edges: map }
+    }
+
+    /// Returns a value indicating whether the matching is empty.
+    pub fn is_empty(&self) -> bool {
+        self.edges.is_empty()
+    }
+
+    /// Returns the number of edges in the graph.
+    pub fn len(&self) -> usize {
+        self.edges.len() / 2
+    }
+
+    /// Exports all edges in a vector.
+    pub fn edges(&self) -> Vec<Edge> {
+        self.edges
+            .iter()
+            .filter(|&(&v, &w)| v < w)
+            .map(|(&v, &w)| (v, w))
+            .collect()
+    }
+
+    /// Exports all edges in a vector.
+    pub fn vertices(&self) -> Vec<Vertex> {
+        self.edges.keys().cloned().collect()
+    }
+
+    /// Gets the vertex that `vertex` is connected to.
+    /// Panics if matching does not contain a vertex `vertex`.
+    pub fn partner(&self, vertex: Vertex) -> Vertex {
+        self.edges[&vertex]
+    }
+
+    /// Creates a contracted matching with edges between `leafs` removed.
+    pub fn contract(&self, leafs: &[Vertex]) -> Matching {
+        let mut edges = self.edges.clone();
+        for leaf in leafs {
+            edges.remove(leaf);
+        }
+        Matching { edges }
+    }
+
+    /// Creates a expanded matching using the augmenting `path`.
+    pub fn augment(&self, path: &[Vertex]) -> Matching {
+        let mut edges = self.edges.clone();
+        for leaf in path {
+            edges.remove(leaf);
+        }
+        for (i, j) in (0..path.len() / 2).map(|i| (2 * i, 2 * i + 1)) {
+            edges.insert(path[i], path[j]);
+            edges.insert(path[j], path[i]);
+        }
+        Matching { edges }
+    }
+
+    /// Adds a matching
+    pub fn add(&self, other: &Matching) -> Matching {
+        let mut edges = self.edges.clone();
+        for (&v, &w) in &other.edges {
+            edges.insert(v, w);
+        }
+        Matching { edges }
+    }
+}
+
+
+
+
+
 /// A graph with annotations on edges
 #[derive(Clone, Debug)]
 pub struct AnnotatedGraph<Annotation>
-where
-    Annotation: Copy + Sized,
+    where
+        Annotation: Copy + Sized,
 {
     vertices: Vec<Vertex>,
     edges: HashMap<Vertex, (Vec<Vertex>, Vec<Annotation>)>,
 }
 
 impl<Annotation> AnnotatedGraph<Annotation>
-where
-    Annotation: Copy + Sized,
+    where
+        Annotation: Copy + Sized,
 {
     /// Returns a new AnnotatedGraph instance
     ///
@@ -164,8 +319,8 @@ where
 
     /// Creates a new AnnotatedGraph with vertices filtered by given `predicate`.
     pub fn filter_vertices<P>(&self, predicate: P) -> Self
-    where
-        P: Fn(&Vertex) -> bool,
+        where
+            P: Fn(&Vertex) -> bool,
     {
         Self::new(
             self.edges
@@ -182,8 +337,8 @@ where
 
     /// Creates a new AnnotatedGraph with edges filtered by given `predicate`.
     pub fn filter_edges<P>(&self, predicate: P) -> Self
-    where
-        P: Fn(&Vertex, &Vertex, &Annotation) -> bool,
+        where
+            P: Fn(&Vertex, &Vertex, &Annotation) -> bool,
     {
         Self::new(
             self.edges
@@ -421,9 +576,9 @@ where
 }
 
 impl<Annotation> FromIterator<(Vertex, (Vec<Vertex>, Vec<Annotation>))>
-    for AnnotatedGraph<Annotation>
-where
-    Annotation: Copy + Sized,
+for AnnotatedGraph<Annotation>
+    where
+        Annotation: Copy + Sized,
 {
     fn from_iter<I: IntoIterator<Item = (Vertex, (Vec<Vertex>, Vec<Annotation>))>>(
         iter: I,
@@ -433,9 +588,9 @@ where
 }
 
 impl<'a, Annotation> FromIterator<&'a (Vertex, (Vec<Vertex>, Vec<Annotation>))>
-    for AnnotatedGraph<Annotation>
-where
-    Annotation: 'a + Copy + Sized,
+for AnnotatedGraph<Annotation>
+    where
+        Annotation: 'a + Copy + Sized,
 {
     fn from_iter<I: IntoIterator<Item = &'a (Vertex, (Vec<Vertex>, Vec<Annotation>))>>(
         iter: I,
@@ -498,8 +653,8 @@ fn find_match_four() {
         (6, vec![5]),
         (7, vec![2, 5]),
     ]
-    .iter()
-    .collect();
+        .iter()
+        .collect();
     let m = g.maximum_matching();
     verify_matching(&g, &m, 4);
 }
@@ -514,6 +669,100 @@ fn verify_matching(g: &Graph, matching: &Matching, minimum: usize) {
         .all(|&(a, b)| g.vertices_from(a).iter().any(|&e| e == b)));
 }
 
+
+
+
+
+
+pub type Graph = AnnotatedGraph<()>;
+
+impl FromIterator<(Vertex, Vec<Vertex>)> for Graph {
+    fn from_iter<I: IntoIterator<Item = (Vertex, Vec<Vertex>)>>(iter: I) -> Self {
+        Self::new(
+            iter.into_iter()
+                .map(|(v, e)| {
+                    let len = e.len();
+                    (v, (e, iter::repeat(()).take(len).collect()))
+                })
+                .collect(),
+        )
+    }
+}
+
+impl<'a> FromIterator<&'a (Vertex, Vec<Vertex>)> for Graph {
+    fn from_iter<I: IntoIterator<Item = &'a (Vertex, Vec<Vertex>)>>(iter: I) -> Self {
+        iter.into_iter().cloned().collect()
+    }
+}
+
+
+use std::cmp::Ordering::{Equal, Greater, Less};
+use std::f64;
+
+
+
+pub type Weight = f64;
+pub type WeightedGraph<T = Weight> = AnnotatedGraph<T>;
+
+impl<T> WeightedGraph<T>
+    where
+        T: PartialEq + PartialOrd + Copy,
+{
+    /// Returns a full matching with iteratively the maximum minimal weight edge.
+    pub fn maximin_matching(&self) -> Option<Matching> {
+        if self.is_empty() {
+            return Some(Matching::new(&[]));
+        }
+
+        let cmp = |x: &T, y: &T| x.partial_cmp(y).unwrap_or(Equal);
+        let cmp_rev = |x: &T, y: &T| cmp(y, x);
+        self.full_matching()?;
+
+        let min_max_value = self
+            .vertices()
+            .iter()
+            .map(|&v| self.edges_from(v).1.iter().cloned().max_by(cmp).unwrap())
+            .min_by(cmp)
+            .unwrap();
+        let mut values: Vec<_> = self
+            .vertices()
+            .iter()
+            .flat_map(|&vertex| self.edges_from(vertex).1)
+            .filter(|&w| cmp(w, &min_max_value) != Greater)
+            .cloned()
+            .collect();
+        values.sort_by(cmp_rev);
+
+        for value in values {
+            let limited = self.limit(value);
+            if let Some(matching) = limited.full_matching() {
+                let mut edges: Vec<Edge> = matching
+                    .edges()
+                    .into_iter()
+                    .filter(|edge| limited.weight(edge).eq(&value))
+                    .collect();
+                edges.sort_by_key(|&(v, w)| limited.vertices_from(v).min(limited.vertices_from(w)));
+                let sub_matching = limited
+                    .filter_vertices(|&v| v != edges[0].0 && v != edges[0].1)
+                    .maximin_matching()
+                    .unwrap();
+                return Some(sub_matching.add(&Matching::new(&edges[0..1])));
+            }
+        }
+
+        None
+    }
+
+    // Clone graph removing edges with weight less than given limit
+    pub fn limit(&self, weight: T) -> WeightedGraph<T> {
+        self.filter_edges(|_, _, &w| w.partial_cmp(&weight) != Some(Less))
+    }
+
+    fn weight(&self, edge: &Edge) -> T {
+        let (v, w) = self.edges_from(edge.0);
+        *v.iter().zip(w.iter()).find(|t| *t.0 == edge.1).unwrap().1
+    }
+}
 
 
 
