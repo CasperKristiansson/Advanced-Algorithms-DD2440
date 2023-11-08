@@ -10,7 +10,7 @@ use std::io::{self};
 use std::time::Instant;
 // use log::info;
 use blossom::{Vertex, WeightedGraph, AnnotatedGraph};
-use crate::utils::{euclidean_distance, Graph, three_opt, two_opt};
+use crate::utils::{Graph, three_opt};
 use crate::utils::SparseGraph;
 
 fn nearest_neighbor_tour(points: &Vec<(f64, f64)>) -> Vec<i32> {
@@ -61,10 +61,15 @@ fn greedy_tour(graph: &Graph) -> Vec<i32> {
     }
 
     // two-opt
+    // tour
     three_opt(graph, tour, start_time, 1950)
 }
 
 fn christofidis(graph: &Graph) -> Vec<i32> {
+    let start_time= Instant::now();
+    if graph.num_nodes == 1 {
+        return vec![0];
+    }
     let mut prev_time = Instant::now();
     let mut spanning_tree: SparseGraph = graph.get_min_spanning_tree();
     // info!("Spanning tree: {:?}", Instant::now() - prev_time);
@@ -89,7 +94,7 @@ fn christofidis(graph: &Graph) -> Vec<i32> {
     prev_time = Instant::now();
     let blossom_graph: WeightedGraph<i32> = AnnotatedGraph::new(map);
 
-    let matching_edges = blossom_graph.maximum_matching().edges();
+    let matching_edges = blossom_graph.maximin_matching().unwrap().edges();
     // info!("Matching: {:?}", Instant::now() - prev_time);
 
     prev_time = Instant::now();
@@ -126,8 +131,7 @@ fn christofidis(graph: &Graph) -> Vec<i32> {
         }
     }
     // info!("Euler tour: {:?}", Instant::now() - prev_time);
-
-    tour
+    three_opt(graph, tour, start_time, 1950)
 }
 
 fn main() {
@@ -157,7 +161,12 @@ fn main() {
     //     }
     // }
 
-    let tour = christofidis(&graph);
+    let tour;
+    if graph.num_nodes <= 200 {
+        tour = christofidis(&graph);
+    } else {
+        tour = greedy_tour(&graph);
+    }
 
     // output
     for res in tour {

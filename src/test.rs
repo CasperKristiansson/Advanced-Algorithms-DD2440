@@ -6,23 +6,33 @@ mod tests {
     use rand::rngs::StdRng;
     use crate::{christofidis, greedy_tour, nearest_neighbor_tour, utils};
 
+    use std::sync::Once;
+
+    static INIT: Once = Once::new();
+
+    pub fn initialize() {
+        INIT.call_once(|| {
+            env_logger::builder()
+                .filter_level(log::LevelFilter::Info)
+                .init();
+        });
+    }
+
     #[test]
     fn test_simple_graph () {
         let input = vec![(95.0129,61.5432),(23.1139,79.1937),(60.6843,92.1813),(48.5982,73.8207),(89.1299,17.6266),(76.2097,40.5706),(45.6468,93.5470),(1.8504,91.6904),(82.1407,41.0270),(44.4703,89.3650)];
         let graph = utils::Graph::new(&input);
         let displayGraph = utils::Graph::new(&input);
-        for edges in displayGraph.edges {
-            println!("{}", edges.iter().map(|&n| n.to_string()).collect::<Vec<String>>().join(","));
-        }
-        let result = christofidis(&graph);
+        // for edges in displayGraph.edges {
+        //     println!("{}", edges.iter().map(|&n| n.to_string()).collect::<Vec<String>>().join(","));
+        // }
+        execution_helper("simpleGraph", 0, &input);
     }
     #[test]
     fn test_small_graphs() {
-        env_logger::builder()
-            .filter_level(log::LevelFilter::Info)
-            .init();
         let input = vec![vec![(95.0129,61.5432),(23.1139,79.1937),(60.6843,92.1813),(48.5982,73.8207),(89.1299,17.6266),(76.2097,40.5706),(45.6468,93.5470),(1.8504,91.6904),(82.1407,41.0270),(44.4703,89.3650)],
                          vec![(41.0, 49.0), (35.0, 17.0), (55.0, 45.0), (55.0, 20.0), (15.0, 30.0), (25.0, 30.0)],
+                         vec![(0.0,0.0)],
                          vec![(0.0, 0.0), (0.0, 1.0), (1.0, 1.0), (1.0, 0.0)],
                          vec![(0.0, 0.0), (0.0, 1.0), (1.0, 1.0), (1.0, 0.0), (0.5, 0.5)],
                          vec![(0.0, 0.0), (0.0, 1.0), (1.0, 1.0), (1.0, 0.0), (0.5, 0.5), (0.5, 0.0)],
@@ -33,26 +43,13 @@ mod tests {
             ];
 
         for i in 0..input.len() {
-            let graph = utils::Graph::new(&input[i]);
-
-            let compare = nearest_neighbor_tour(&input[i]);
-
-            let result = christofidis(&graph);
-            assert_eq!(result.len(), input[i].len());
-            assert!(!has_duplicates(&result));
-
-            let nn_distance = calculate_distance(&input[i], &compare);
-            let greedy_distance = calculate_distance(&input[i], &result);
-            // assert!(greedy_distance <= nn_distance);
-            info!("{:?}: Greedy: {:?} < NN: {:?}",i, greedy_distance, nn_distance);
+            execution_helper("small_graphs", i, &input[i]);
         }
     }
 
     #[test]
     fn test_big_graphs() {
-        env_logger::builder()
-            .filter_level(log::LevelFilter::Info)
-            .init();
+
         info!("test");
         let input = vec![
             graph_builder(10),
@@ -63,16 +60,7 @@ mod tests {
         ];
 
         for i in 0..input.len() {
-            let graph = utils::Graph::new(&input[i]);
-
-            let compare = nearest_neighbor_tour(&input[i]);
-            info!("Graph size: {:?}", graph.num_nodes);
-            let result = christofidis(&graph);
-            assert_eq!(result.len(), input[i].len());
-            assert!(!has_duplicates(&result));
-            let nn_distance = calculate_distance(&input[i], &compare);
-            let greedy_distance = calculate_distance(&input[i], &result);
-            // assert!(greedy_distance <= nn_distance);
+            execution_helper("big_graphs", i, &input[i]);
         }
     }
 
