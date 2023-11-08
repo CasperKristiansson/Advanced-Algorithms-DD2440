@@ -54,14 +54,12 @@ impl Graph {
         let mut edge_count = 0;
         while !sorted.is_empty() && edge_count < self.num_nodes - 1 {
             let (x, y) = sorted.pop().unwrap();
-            if sparse_graph.get_vertex_degree(x) < 2 && sparse_graph.get_vertex_degree(y) < 2 {
-                sparse_graph.add_edge(x, y);
-                edge_count += 1;
-                let circle_length = sparse_graph.get_circle(x);
-                if circle_length >= 0 {
-                    sparse_graph.remove_edge(x, y);
-                    edge_count -= 1;
-                }
+            sparse_graph.add_edge(x, y);
+            edge_count += 1;
+            let circle_length = sparse_graph.get_circle(x);
+            if circle_length >= 0 {
+                sparse_graph.remove_edge(x, y);
+                edge_count -= 1;
             }
         }
         sparse_graph
@@ -70,7 +68,7 @@ impl Graph {
 
 pub struct SparseGraph {
     num_nodes: i32,
-    adjacency_list: Vec<Vec<i32>>
+    pub(crate) adjacency_list: Vec<Vec<i32>>
 }
 
 impl SparseGraph {
@@ -131,6 +129,15 @@ impl SparseGraph {
 
     pub(crate) fn get_neighbors(&self, x: i32) -> Vec<i32> {
         self.adjacency_list[x as usize].clone()
+    }
+
+    pub(crate) fn get_edge(&self) -> Option<(i32, i32)> {
+        for i in 0..self.num_nodes as usize {
+            if self.adjacency_list[i].len() != 0 {
+                return Some((i as i32, self.adjacency_list[i][0]));
+            }
+        }
+        None
     }
 }
 
