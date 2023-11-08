@@ -50,6 +50,10 @@ mod tests {
 
     #[test]
     fn test_big_graphs() {
+        env_logger::builder()
+            .filter_level(log::LevelFilter::Info)
+            .init();
+        info!("test");
         let input = vec![
             graph_builder(10),
             graph_builder(50),
@@ -62,7 +66,7 @@ mod tests {
             let graph = utils::Graph::new(&input[i]);
 
             let compare = nearest_neighbor_tour(&input[i]);
-
+            info!("Graph size: {:?}", graph.num_nodes);
             let result = christofidis(&graph);
             assert_eq!(result.len(), input[i].len());
             assert!(!has_duplicates(&result));

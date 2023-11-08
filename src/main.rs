@@ -1,13 +1,14 @@
 mod utils;
-
+mod blossom;
 // mod lin_kernighan_opt;
 // TODO always comment out before uploading solution
 mod test;
-mod blossom;
+
 
 use std::collections::HashMap;
 use std::io::{self};
 use std::time::Instant;
+// use log::info;
 use blossom::{Vertex, WeightedGraph, AnnotatedGraph};
 use crate::utils::{euclidean_distance, Graph, three_opt, two_opt};
 use crate::utils::SparseGraph;
@@ -64,8 +65,11 @@ fn greedy_tour(graph: &Graph) -> Vec<i32> {
 }
 
 fn christofidis(graph: &Graph) -> Vec<i32> {
+    let mut prev_time = Instant::now();
     let mut spanning_tree: SparseGraph = graph.get_min_spanning_tree();
+    // info!("Spanning tree: {:?}", Instant::now() - prev_time);
 
+    prev_time = Instant::now();
     let odd_degree_nodes = spanning_tree.adjacency_list.iter().
         enumerate().filter(|(_, v)| v.len() % 2 == 1).map(|(i, _)| i).collect::<Vec<usize>>();
 
@@ -74,26 +78,37 @@ fn christofidis(graph: &Graph) -> Vec<i32> {
     for i in 0..odd_degree_nodes.len() {
         for j in i+1..odd_degree_nodes.len() {
             let length = graph.get_edge(odd_degree_nodes[i] as i32, odd_degree_nodes[j] as i32);
-            dist_matrix[i][j-1] = length;
-            dist_matrix[j][i] = length;
+            dist_matrix[i][j-1] = -length;
+            dist_matrix[j][i] = -length;
         }
         let connections = (0..odd_degree_nodes.len()).filter(|&x| x != i).collect();
         map.insert(i, (connections, dist_matrix[i].clone()));
     }
+    // info!("Prepare blossom: {:?}", Instant::now() - prev_time);
+
+    prev_time = Instant::now();
     let blossom_graph: WeightedGraph<i32> = AnnotatedGraph::new(map);
 
-    let matching_edges = blossom_graph.maximin_matching().unwrap().edges();
+    let matching_edges = blossom_graph.maximum_matching().edges();
+    // info!("Matching: {:?}", Instant::now() - prev_time);
 
+    prev_time = Instant::now();
     for (x,y) in matching_edges {
         spanning_tree.add_edge(odd_degree_nodes[x] as i32,odd_degree_nodes[y] as i32);
     }
 
     // Euler Tour
     let mut visited = vec![0; graph.num_nodes as usize];
-    let mut tour = Vec::new();
+    let mut tour:Vec<i32> = Vec::new();
     tour.push(0);
     while spanning_tree.get_edge().is_some() {
-        let (mut start, mut y) = spanning_tree.get_edge().unwrap();
+        let mut start = *tour.iter().find(|&&ele| spanning_tree.adjacency_list[ele as usize].len() != 0).unwrap();
+        let mut y = spanning_tree.adjacency_list[start as usize][0];
+        // if !tour.contains(&start) {
+        //     let copy = start;
+        //     start = y;
+        //     y = copy;
+        // }
         let mut counter = 1;
         let mut position = tour.iter().position(|&ele| ele == start).unwrap();
         let mut x = start;
@@ -110,6 +125,7 @@ fn christofidis(graph: &Graph) -> Vec<i32> {
             }
         }
     }
+    // info!("Euler tour: {:?}", Instant::now() - prev_time);
 
     tour
 }
@@ -141,14 +157,10 @@ fn main() {
     //     }
     // }
 
-    let tour = greedy_tour(&graph);
-
-
+    let tour = christofidis(&graph);
 
     // output
     for res in tour {
         println!("{:?}", res);
     }
-
-
 }
