@@ -7,6 +7,7 @@ mod tests {
     use crate::{christofidis, greedy_tour, nearest_neighbor_tour, utils};
 
     use std::sync::Once;
+    use std::time::Instant;
 
     static INIT: Once = Once::new();
 
