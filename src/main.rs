@@ -1,8 +1,9 @@
 mod utils;
-mod blossom;
+//mod blossom;
+mod mwmatching;
 // mod lin_kernighan_opt;
 // TODO always comment out before uploading solution
-mod test;
+//mod test;
 
 
 use std::collections::HashMap;
@@ -10,7 +11,7 @@ use std::io::{self};
 use std::time::Instant;
 use mwmatching::Matching;
 // use log::info;
-use blossom::{Vertex, WeightedGraph, AnnotatedGraph};
+//use blossom::{Vertex, WeightedGraph, AnnotatedGraph};
 use crate::utils::{Graph, three_opt};
 use crate::utils::SparseGraph;
 
@@ -81,24 +82,7 @@ fn christofidis(graph: &Graph, optimize: bool) -> Vec<i32> {
     let odd_degree_nodes = spanning_tree.adjacency_list.iter().
         enumerate().filter(|(_, v)| v.len() % 2 == 1).map(|(i, _)| i).collect::<Vec<usize>>();
 
-    // let mut map: HashMap<Vertex, (Vec<Vertex>, Vec<i32>)> = HashMap::new();
-    // let mut dist_matrix: Vec<Vec<i32>> = vec![vec![0; odd_degree_nodes.len() - 1]; odd_degree_nodes.len()];
-    // for i in 0..odd_degree_nodes.len() {
-    //     for j in i+1..odd_degree_nodes.len() {
-    //         let length = graph.get_edge(odd_degree_nodes[i] as i32, odd_degree_nodes[j] as i32);
-    //         dist_matrix[i][j-1] = -length;
-    //         dist_matrix[j][i] = -length;
-    //     }
-    //     let connections = (0..odd_degree_nodes.len()).filter(|&x| x != i).collect();
-    //     map.insert(i, (connections, dist_matrix[i].clone()));
-    // }
-    // // info!("Prepare blossom: {:?}", Instant::now() - prev_time);
-    //
-    // prev_time = Instant::now();
-    // let blossom_graph: WeightedGraph<i32> = AnnotatedGraph::new(map);
-    //
-    // let matching_edges = blossom_graph.maximin_matching().unwrap().edges();
-    // info!("Matching: {:?}", Instant::now() - prev_time);
+
     let max = *graph.edges.iter().flat_map(|row| row.iter()).max().unwrap();
     let mut edges = Vec::new();
     for i in 0..odd_degree_nodes.len() {
@@ -153,7 +137,7 @@ fn christofidis(graph: &Graph, optimize: bool) -> Vec<i32> {
     if !optimize {
         return tour.clone();
     }
-    three_opt(graph, tour, start_time, 1950)
+    three_opt(graph, tour, start_time, 1980)
 }
 
 fn main() {
@@ -183,15 +167,9 @@ fn main() {
     //     }
     // }
 
-    let tour;
-    if graph.num_nodes <= 200 {
-        tour = christofidis(&graph, true);
-    } else {
-        tour = greedy_tour(&graph, true);
-    }
 
     // output
-    for res in tour {
+    for res in christofidis(&graph, true) {
         println!("{:?}", res);
     }
 }
