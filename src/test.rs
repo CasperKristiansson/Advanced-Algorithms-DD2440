@@ -19,6 +19,25 @@ mod tests {
         });
     }
 
+    fn execution_helper(test_name: &str, test_number: usize, input: &Vec<(f64, f64)>) {
+        initialize();
+        let graph = utils::Graph::new(input);
+
+        let mut start_time = Instant::now();
+        let compare = greedy_tour(&graph, true);
+        let comp_duration = Instant::now() - start_time;
+        start_time = Instant::now();
+        let result = christofidis(&graph, true);
+        let duration = Instant::now() - start_time;
+        assert_eq!(result.len(), input.len());
+        assert!(!has_duplicates(&result));
+
+        let nn_distance = calculate_distance(input, &compare);
+        let result_distance = calculate_distance(input, &result);
+        // assert!(greedy_distance <= nn_distance);
+        info!("{:?} {:?}: Result ({:?}): {:?}; Comp ({:?}): {:?}, Diff: {:?}",test_name, test_number, duration, result_distance, comp_duration, nn_distance, result_distance - nn_distance);
+    }
+
     #[test]
     fn test_simple_graph () {
         let input = vec![(95.0129,61.5432),(23.1139,79.1937),(60.6843,92.1813),(48.5982,73.8207),(89.1299,17.6266),(76.2097,40.5706),(45.6468,93.5470),(1.8504,91.6904),(82.1407,41.0270),(44.4703,89.3650)];
