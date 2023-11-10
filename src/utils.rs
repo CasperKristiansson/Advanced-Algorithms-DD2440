@@ -263,6 +263,7 @@ pub fn three_opt(graph: &Graph, mut tour:Vec<i32>, start_time:Instant, max_proce
                                     _ => panic!("Invalid flip")
                                 }
                             }
+                            improved = true;
                         }
 
                         if (start_time.elapsed().as_millis() >= max_processing_ms) {
