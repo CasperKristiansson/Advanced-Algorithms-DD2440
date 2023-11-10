@@ -12,7 +12,7 @@ use std::time::Instant;
 use mwmatching::Matching;
 // use log::info;
 //use blossom::{Vertex, WeightedGraph, AnnotatedGraph};
-use crate::utils::{Graph, three_opt};
+use crate::utils::{Graph, three_opt, two_opt};
 use crate::utils::SparseGraph;
 
 fn nearest_neighbor_tour(points: &Vec<(f64, f64)>) -> Vec<i32> {
@@ -137,7 +137,7 @@ fn christofidis(graph: &Graph, optimize: bool) -> Vec<i32> {
     if !optimize {
         return tour.clone();
     }
-    three_opt(graph, tour, start_time, 1980)
+    three_opt(graph, two_opt(graph, tour, start_time, 1980), start_time, 1980)
 }
 
 fn main() {
