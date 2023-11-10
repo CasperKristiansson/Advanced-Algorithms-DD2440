@@ -10,6 +10,13 @@ fn distance(p1: (f64, f64), p2: (f64, f64)) -> f64 {
     (dx * dx + dy * dy).sqrt()
 }
 
+#[inline]
+fn squared_distance(p1: (f64, f64), p2: (f64, f64)) -> f64 {
+    let dx = p1.0 - p2.0;
+    let dy = p1.1 - p2.1;
+    dx * dx + dy * dy
+}
+
 fn initial_tour(points: &[(f64, f64)]) -> Vec<usize> {
     let num_points = points.len();
     let mut visited = vec![false; num_points];
@@ -47,22 +54,27 @@ fn initial_tour(points: &[(f64, f64)]) -> Vec<usize> {
 fn lin_kernighan_heuristic(points: &[(f64, f64)], tour: &mut Vec<usize>, time_limit: Duration) {
     let start_time = Instant::now();
     let num_points = tour.len();
-    let check_interval = 50;  // Check time every 50 iterations
+    let check_interval = 50;
 
     while start_time.elapsed() < time_limit {
         let mut improvement = false;
 
         'outer: for i in 0..num_points {
             for j in (i + 2)..num_points {
-                // Check the time less frequently to reduce overhead
-                if j % check_interval == 0 && start_time.elapsed() >= time_limit {
-                    return;
+                for k in (j + 2)..num_points {
+                    if k % check_interval == 0 && start_time.elapsed() >= time_limit {
+                        return;
+                    }
+
+                    if three_opt_gain(points, tour, i, j, k) > 0.0 {
+                        three_opt_swap(tour, i, j, k);
+                        improvement = true;
+                        break 'outer;
+                    }
                 }
 
-                if two_opt_gain(&points, &tour, i, j) > 0.0 {
-                    two_opt_swap(tour, i, j);
-                    improvement = true;
-                    break 'outer;
+                if j % check_interval == 0 && start_time.elapsed() >= time_limit {
+                    return;
                 }
             }
         }
@@ -74,32 +86,48 @@ fn lin_kernighan_heuristic(points: &[(f64, f64)], tour: &mut Vec<usize>, time_li
 }
 
 
-fn two_opt_gain(points: &[(f64, f64)], tour: &[usize], i: usize, j: usize) -> f64 {
+fn three_opt_gain(points: &[(f64, f64)], tour: &[usize], i: usize, j: usize, k: usize) -> f64 {
     let num_points = tour.len();
     let a = tour[i];
     let b = tour[(i + 1) % num_points];
     let c = tour[j];
     let d = tour[(j + 1) % num_points];
+    let e = tour[k];
+    let f = tour[(k + 1) % num_points];
 
-    let ab = distance(points[a], points[b]);
-    let cd = distance(points[c], points[d]);
-    let ac = distance(points[a], points[c]);
-    let bd = distance(points[b], points[d]);
+    let ab = squared_distance(points[a], points[b]);
+    let cd = squared_distance(points[c], points[d]);
+    let ef = squared_distance(points[e], points[f]);
+    let ac = squared_distance(points[a], points[c]);
+    let be = squared_distance(points[b], points[e]);
+    let df = squared_distance(points[d], points[f]);
 
-    (ab + cd) - (ac + bd) // Gain: negative means improvement
+    (ab + cd + ef) - (ac + be + df)
 }
 
-fn two_opt_swap(tour: &mut Vec<usize>, i: usize, j: usize) {
-    if i < j {
+fn three_opt_swap(tour: &mut Vec<usize>, i: usize, j: usize, k: usize) {
+    let len = tour.len();
+
+    if i < j && j < k {
         tour[i + 1..=j].reverse();
+        tour[j + 1..=k].reverse();
+        tour[i + 1..=k].reverse();
     } else {
-        // Handle wrapping around the tour
-        let mut temp = tour[i + 1..].to_vec();
-        temp.extend_from_slice(&tour[..=j]);
-        temp.reverse();
-        let split = tour.len() - i - 1;
-        tour[i + 1..].copy_from_slice(&temp[..split]);
-        tour[..=j].copy_from_slice(&temp[split..]);
+        let mut new_tour = Vec::with_capacity(len);
+
+        new_tour.extend_from_slice(&tour[0..=i]);
+        if k < j {
+            new_tour.extend(tour[k + 1..=j].iter().rev());
+            new_tour.extend(tour[i + 1..=k].iter().rev());
+            new_tour.extend(tour[j + 1..len].iter());
+        } else {
+            new_tour.extend(tour[j + 1..=k].iter().rev());
+            new_tour.extend(tour[i + 1..=j].iter().rev());
+            if k < len - 1 {
+                new_tour.extend(&tour[k + 1..len]);
+            }
+        }
+        *tour = new_tour;
     }
 }
 
@@ -107,7 +135,7 @@ fn total_distance(points: &[(f64, f64)], tour: &[usize]) -> f64 {
     let mut total_dist = 0.0;
     for i in 0..tour.len() {
         let curr_city = tour[i];
-        let next_city = tour[(i + 1) % tour.len()]; // To wrap around to the first city
+        let next_city = tour[(i + 1) % tour.len()];
         total_dist += distance(points[curr_city], points[next_city]);
     }
     total_dist
@@ -116,6 +144,9 @@ fn total_distance(points: &[(f64, f64)], tour: &[usize]) -> f64 {
 fn main() {
     let stdin = io::stdin();
     let mut buffer = String::new();
+
+    let start_time = Instant::now();
+
     stdin.read_line(&mut buffer).unwrap();
     let num_points = buffer.trim().parse::<usize>().unwrap();
     let mut points = Vec::with_capacity(num_points);
@@ -130,7 +161,13 @@ fn main() {
     let start_time = Instant::now();
 
     let mut tour = initial_tour(&points);
-    lin_kernighan_heuristic(&points, &mut tour, Duration::new(2, 0));
+
+    let remaining_time = Duration::new(2, 0)
+        .checked_sub(start_time.elapsed())
+        .and_then(|d| d.checked_sub(Duration::from_millis(100)))
+        .unwrap_or_else(|| Duration::new(0, 0));
+
+    lin_kernighan_heuristic(&points, &mut tour, remaining_time);
 
     let elapsed_time = start_time.elapsed();
 
