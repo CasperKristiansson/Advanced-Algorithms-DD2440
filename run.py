@@ -14,7 +14,7 @@ data = '''10
 44.4703 89.3650
 '''
 
-data = '''500
+data_s = '''500
 75.1535 26.6743
 21.9653 33.0668
 70.1337 53.8589
@@ -526,6 +526,8 @@ stdout, stderr = process.communicate(input=data)
 print("STDOUT:", stdout, sep='\n')
 if not stdout:
     print("STDERR:", stderr)
+    import sys
+    sys.exit(1)
 
 
 def calculate_distance(coord1, coord2):

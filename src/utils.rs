@@ -279,3 +279,36 @@ pub fn three_opt(graph: &Graph, mut tour:Vec<i32>, start_time:Instant, max_proce
 
     tour
 }
+
+pub struct SimpleRng {
+    state: u64,
+}
+
+impl SimpleRng {
+    const A: u64 = 1664525;
+    const C: u64 = 1013904223;
+    const M: u64 = 2u64.pow(32);
+
+    pub fn new(seed: u64) -> Self {
+        Self { state: seed }
+    }
+
+    pub fn next_u32(&mut self) -> u32 {
+        self.state = (Self::A.wrapping_mul(self.state) + Self::C) % Self::M;
+        self.state as u32
+    }
+
+    pub fn gen_range(&mut self, start: usize, end: usize) -> usize {
+        start + (self.next_u32() as usize) % (end - start)
+    }
+
+    pub fn shuffle<T>(&mut self, slice: &mut [T]) {
+        for i in (1..slice.len()).rev() {
+            slice.swap(i, self.gen_range(0, i + 1));
+        }
+    }
+
+    pub fn next_f64(&mut self) -> f64 {
+        self.next_u32() as f64 / u32::MAX as f64
+    }
+}
