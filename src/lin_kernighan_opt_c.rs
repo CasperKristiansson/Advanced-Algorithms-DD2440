@@ -1,5 +1,6 @@
 use crate::utils::SimpleRng;
 use crate::utils::Graph;
+use std::time::{Duration, Instant};
 
 pub struct Lin<'a> {
     pub tour: Vec<i32>,
@@ -20,17 +21,19 @@ impl<'a> Lin<'a> {
         }
     }
 
-    pub fn execute(&mut self, max_iterations: usize) {
+    pub fn execute(&mut self) {
         if self.tour.is_empty() {
             let mut rng = SimpleRng::new(1698508300);
             self.initialize_random_tour(&mut rng);
         }
 
+        let duration = std::time::Duration::from_millis(1900);
+        let start_time = Instant::now();
         let mut iteration = 0;
-        while iteration < max_iterations {
-            self.two_opt();
-            self.three_opt();
 
+        while start_time.elapsed() < duration {
+            self.two_opt(iteration, &start_time, &duration);
+            self.three_opt(iteration, &start_time, &duration);
             iteration += 1;
         }
     }
@@ -41,12 +44,17 @@ impl<'a> Lin<'a> {
         rng.shuffle(&mut self.tour);
     }
 
-    pub fn two_opt(&mut self) {
+    pub fn two_opt(&mut self, iteration: usize, start_time: &Instant, duration: &Duration) {
+        let max_duration = self.max_duration_per_operation(iteration);
         let mut improvement = true;
-        while improvement {
+
+        while improvement && start_time.elapsed() < *duration {
             improvement = false;
             for i in 0..self.tour.len() - 1 {
                 for j in i + 2..self.tour.len() {
+                    if start_time.elapsed() >= *duration {
+                        return;
+                    }
                     if j == self.tour.len() - 1 && i == 0 {
                         continue;
                     }
@@ -85,13 +93,19 @@ impl<'a> Lin<'a> {
         }
     }
 
-    pub fn three_opt(&mut self) {
+    pub fn three_opt(&mut self, iteration: usize, start_time: &Instant, duration: &Duration) {
+        let max_duration = self.max_duration_per_operation(iteration);
         let mut improvement = true;
-        while improvement {
+
+        while improvement && start_time.elapsed() < *duration {
             improvement = false;
             for i in 0..self.tour.len() - 2 {
                 for j in i + 2..self.tour.len() - 1 {
                     for k in j + 2..self.tour.len() {
+                        if start_time.elapsed() >= *duration {
+                            return;
+                        }
+
                         if k == self.tour.len() - 1 && i == 0 {
                             continue;
                         }
@@ -139,6 +153,12 @@ impl<'a> Lin<'a> {
         } else {
             false
         }
+    }
+
+    fn max_duration_per_operation(&self, iteration: usize) -> Duration {
+        let base_duration = Duration::from_millis(5);
+        let factor = self.graph.num_nodes as u32;
+        base_duration * (iteration as u32 + 1)
     }
 
     fn try_reconnect(&mut self, best_tour: &mut Vec<i32>, best_length: &mut i32, i: usize, j: usize, k: usize, case: u8) {
