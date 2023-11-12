@@ -1,4 +1,5 @@
 import subprocess
+import math
 
 data = '''10
 95.0129 61.5432
@@ -523,7 +524,19 @@ process = subprocess.Popen(command, stdin=subprocess.PIPE, stdout=subprocess.PIP
 stdout, stderr = process.communicate(input=data)
 
 print("STDOUT:", stdout, sep='\n')
-print("STDERR:", stderr)
+if not stdout:
+    print("STDERR:", stderr)
 
 
-# 2opt lk: 1731
+def calculate_distance(coord1, coord2):
+    return math.sqrt((coord2[0] - coord1[0])**2 + (coord2[1] - coord1[1])**2)
+
+
+lines = data.strip().split('\n')
+coordinates = [tuple(map(float, line.split())) for line in lines[1:]]
+
+path = list(map(int, stdout.strip().split('\n')))
+
+total_distance = sum(calculate_distance(coordinates[path[i]], coordinates[path[i + 1]]) for i in range(len(path) - 1))
+
+print("Total distance:", total_distance)
