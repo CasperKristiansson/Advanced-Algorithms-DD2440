@@ -21,21 +21,102 @@ impl<'a> Lin<'a> {
         }
     }
 
+    // pub fn execute(&mut self) {
+    //     if self.tour.is_empty() {
+    //         let mut rng = SimpleRng::new(1698508300);
+    //         self.initialize_random_tour(&mut rng);
+    //     }
+
+    //     let duration = std::time::Duration::from_millis(1900);
+    //     let start_time = Instant::now();
+    //     let mut iteration = 0;
+
+    //     while start_time.elapsed() < duration {
+    //         self.two_opt(iteration, &start_time, &duration);
+    //         self.three_opt(iteration, &start_time, &duration);
+    //         iteration += 1;
+    //     }
+    // }
+
     pub fn execute(&mut self) {
         if self.tour.is_empty() {
             let mut rng = SimpleRng::new(1698508300);
             self.initialize_random_tour(&mut rng);
         }
-
-        let duration = std::time::Duration::from_millis(1900);
+    
+        let mut best_tour = self.tour.clone();
+        let mut best_length = self.calculate_tour_length();
+    
+        let total_duration = Duration::from_millis(1900);
         let start_time = Instant::now();
+    
         let mut iteration = 0;
+    
+        while start_time.elapsed() < total_duration {
+            let max_duration_per_operation = self.calculate_max_duration_per_operation(iteration, total_duration);
+            let max_duration_start_time = Instant::now();
+    
+            let mut improved = false;
+    
+            'outer: for i in 0..self.tour.len() {
+                for j in i + 2..self.tour.len() {
+                    if start_time.elapsed() > total_duration {
+                        self.tour = best_tour;
+                        return;
+                    }
+                    if max_duration_start_time.elapsed() > max_duration_per_operation {
+                        break 'outer;
+                    }
+                    if self.two_opt_swap(i, j) {
+                        let new_length = self.calculate_tour_length();
+                        if new_length < best_length {
+                            best_length = new_length;
+                            best_tour = self.tour.clone();
+                            improved = true;
+                        }
+                    }
+                }
+            }
 
-        while start_time.elapsed() < duration {
-            self.two_opt(iteration, &start_time, &duration);
-            self.three_opt(iteration, &start_time, &duration);
+            let max_duration_start_time = Instant::now();
+    
+            'outer2: for i in 0..self.tour.len() {
+                for j in i + 2..self.tour.len() {
+                    for k in j + 2..self.tour.len() {
+                        if start_time.elapsed() > total_duration {
+                            self.tour = best_tour;
+                            return;
+                        }
+                        if max_duration_start_time.elapsed() > max_duration_per_operation {
+                            break 'outer2;
+                        }
+                        if self.three_opt_swap(i, j, k) {
+                            let new_length = self.calculate_tour_length();
+                            if new_length < best_length {
+                                best_length = new_length;
+                                best_tour = self.tour.clone();
+                                improved = true;
+                            }
+                        }
+                    }
+                }
+            }
+    
+            if !improved {
+                break;
+            }
+    
             iteration += 1;
         }
+    
+        self.tour = best_tour;
+    }
+    
+
+    fn calculate_max_duration_per_operation(&self, iteration: usize, total_duration: Duration) -> Duration {
+        let base_duration = total_duration / (self.tour.len() as u32 * 10);
+        let reduction_factor = iteration as u32 + 1;
+        std::cmp::max(base_duration / reduction_factor, Duration::from_millis(1))
     }
 
     pub fn initialize_random_tour(&mut self, rng: &mut SimpleRng) {
@@ -48,11 +129,11 @@ impl<'a> Lin<'a> {
         let max_duration = self.max_duration_per_operation(iteration);
         let mut improvement = true;
 
-        while improvement && start_time.elapsed() < *duration {
+        while improvement && start_time.elapsed() >= max_duration && start_time.elapsed() >= *duration {
             improvement = false;
             for i in 0..self.tour.len() - 1 {
                 for j in i + 2..self.tour.len() {
-                    if start_time.elapsed() >= *duration {
+                    if start_time.elapsed() >= max_duration && start_time.elapsed() >= *duration {
                         return;
                     }
                     if j == self.tour.len() - 1 && i == 0 {
@@ -89,6 +170,7 @@ impl<'a> Lin<'a> {
             }
             true
         } else {
+            self.tour[i + 1..=k].reverse();
             false
         }
     }
@@ -97,12 +179,12 @@ impl<'a> Lin<'a> {
         let max_duration = self.max_duration_per_operation(iteration);
         let mut improvement = true;
 
-        while improvement && start_time.elapsed() < *duration {
+        while improvement && start_time.elapsed() >= max_duration && start_time.elapsed() >= *duration {
             improvement = false;
             for i in 0..self.tour.len() - 2 {
                 for j in i + 2..self.tour.len() - 1 {
                     for k in j + 2..self.tour.len() {
-                        if start_time.elapsed() >= *duration {
+                        if start_time.elapsed() >= max_duration && start_time.elapsed() >= *duration {
                             return;
                         }
 
@@ -149,6 +231,7 @@ impl<'a> Lin<'a> {
             while self.tabu_list.len() > self.max_tabu_size {
                 self.tabu_list.remove(0);
             }
+            self.tour = best_tour;
             true
         } else {
             false
@@ -156,7 +239,7 @@ impl<'a> Lin<'a> {
     }
 
     fn max_duration_per_operation(&self, iteration: usize) -> Duration {
-        let base_duration = Duration::from_millis(5);
+        let base_duration = Duration::from_millis(200);
         let factor = self.graph.num_nodes as u32;
         base_duration * (iteration as u32 + 1)
     }
