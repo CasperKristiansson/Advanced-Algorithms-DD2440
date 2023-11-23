@@ -1,0 +1,78 @@
+\documentclass{article}
+\usepackage{cite}
+\usepackage{graphicx} % Required for inserting images
+\usepackage{mathtools}
+\usepackage[linesnumbered,ruled,vlined]{algorithm2e}
+\usepackage[a4paper, total={6in, 8in}]{geometry}
+\usepackage{hyperref}
+\usepackage{amsmath}
+\usepackage{amsthm}
+\usepackage{xcolor}
+\newtheorem{theorem}{Theorem}[section]
+\newtheorem{lemma}[theorem]{Lemma}
+\usepackage{enumitem}
+
+\SetKwInOut{KwData}{Input}
+\SetKwInOut{KwResult}{Output}
+\SetKw{KwOr}{or}
+
+\title{Individual Assignment 2 E}
+\author{Casper Kristiansson}
+\date{\today}
+
+\begin{document}
+
+\maketitle
+
+\section{Part 1}
+\subsection{Expected running time of B}
+We know that algorithm A has two different runtimes where the first is \(5\) seconds and the second is \(395\) seconds. Both of them have the same probability of happening which is \(0.5\). We then have algorithm B that runs algorithm A and if it takes longer than 5 seconds it gets interrupted and restarts. This means that the only way for this algorithm to succeed is if algorithm A is able to execute in 5 seconds. \\
+
+ \noindent This type of problem is of the type of geometric distribution where each trial is independent. This means that the expected runtime can be calculated as \(E[B] = \frac{1}{p} \times \text{time per trial} \). This means the expected number of trials until the first success is: \\
+
+ \noindent \(E[B] = \frac{1}{0.5} = 2 \times \text{time per trial.}\) Since each trial takes 5 seconds the expected runtime is \(2 \times 5 = 10 \text{ seconds}\)
+
+\subsection{Probability that B runs for (strictly) more than \(5k\) time units}
+Algorithm B runs for more than \(5k\) time units for every integer where \(k \geq 1\). This means that the algorithm will run \(k\) times. Because the probability of restarting the algorithm is \(0.5\) it means that the probability of Algorithm B running for more than \(5k\) time units can be calculated by:
+
+\[P(\text{B runs more than } 5k \text{ time units}) = 0.5^k\]
+
+
+\section{Part 2}
+\subsection{Upper bound on the probability that A runs for more than 4,000 time units}
+To calculate an upper bound on the probability that A runs for more than 4,000 times units can be calculated using Markov's inequality \cite{Lecture6}. Markov's inequality states that if X is a nonnegative random variable, then, for any \(a > 0\):
+
+
+\[\Pr[X \geq a \times E[X]] \leq \frac{1}{a}\]
+
+\noindent Using this we know that \(a \times E[A] = 4000\). We also know that the \(E[A] = 200\) which makes that \(a = 20\). This means that:
+
+
+
+\begin{align*}
+Pr[X \geq 4000] \leq \frac{1}{20} \\
+Pr[X \geq 4000] \leq 0.05
+\end{align*}
+
+\subsection{Probability of B taking longer than 4,000 time units is at most 0.1\%}
+To find a threshold value for a cutoff time for algorithm \(A\) so that the probability of it running more than 4,000 time units is below \(0.001\). This means that the probability of \(A\) completing within a threshold value \(T\) can be stated as \(P(A < T)\). \\
+
+\noindent Based on this it means that the probability that a single run is longer than the threshold value \(T\) is \(1-P(A < T)\). We then can calculate the max number of iterations that the algorithm can complete within the timeframe of 4,000 time units as \(k = \frac{4000}{T}\). Therefore we have:
+
+\[(1-P(A < T))^\frac{4000}{T} < 0.001\]
+
+\noindent Using Markov's inequality we know that \(P(A \geq T) \leq \frac{E[A]}{T}\). This also means that \(P(A < T) > 1 - \frac{E[A]}{T}\). We then want to find a threshold T that upholds this:
+
+\begin{align*}
+\left(1- \left(1 - \frac{E[A]}{T}\right)\right)^{\frac{4000}{T}} < 0.001 \\
+\left(\frac{E[A]}{T}\right)^{\frac{4000}{T}} < 0.001 \\
+\left(\frac{200}{T}\right)^{\frac{4000}{T}} < 0.001 
+\end{align*}
+
+\noindent We then could use programs like Wolfram Alpha to find a value that upholds this or manually guess. We can see that values in the range of \(\approx 400 \text{ to } 800\). This means that for example with a cutoff value of \(500\) time units (if algorithm A runs longer than 500 time units we interrupt it and start it again). Using this allows algorithm B to uphold the constraint that the probability that the algorithm runs more than 4,000 time units is at most \(0.001\).
+
+\newpage
+\bibliographystyle{IEEEtran}
+\bibliography{main}
+
+\end{document}
