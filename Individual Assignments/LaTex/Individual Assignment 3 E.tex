@@ -31,10 +31,10 @@ We have a stream of numbers where the number \textbf{8} appears 10 times, \textb
 
 \[\hat{f}(x) = \min_{i \in [t]} C[i][h_i(x)]\]
 
-\noindent When hashing the numbers, we have 4 different unique hash values. This means that in order to calculate the probability of \(\hat{f}(5) > 30\) happening we want to calculate the different combinations of how the numbers can be combined with the number 5. The exact probability of this happening is \(\textbf{0.21246}\). \\
+\noindent When hashing the numbers, we have 4 different unique hash values. This means that to calculate the probability of \(\hat{f}(5) > 30\) happening we want to calculate the different combinations of how the numbers can be combined with the number 5. The exact probability of this happening is \(\textbf{0.21246}\). \\
 
 
-\noindent This can be proved by calculating the combination of numbers that uphold the restriction that \(\hat{f}(5) > 30\) are the sets: (5, 3), (5, 1), (5, 8, 3), (5, 8, 1), (5, 8, 9), (5, 3, 1), (5, 3, 9), (5, 1, 9), (5, 8, 3, 1), (5, 8, 3, 9), (5, 3, 1, 9), (5, 8, 3, 1, 9). We then need to calculate the probability of each of these occurrences happening. We have four different types that happen with a probability of:
+\noindent This can be proved by calculating the combination of numbers that uphold the restriction that \(\hat{f}(5) > 30\). These sets are: (5, 3), (5, 1), (5, 8, 3), (5, 8, 1), (5, 8, 9), (5, 3, 1), (5, 3, 9), (5, 1, 9), (5, 8, 3, 1), (5, 8, 3, 9), (5, 3, 1, 9), (5, 8, 3, 1, 9). We then need to calculate the probability of each of these occurrences happening. We have four different types that happen with a probability of:
 
 
 \begin{align*}
@@ -60,17 +60,16 @@ We have a stream of numbers where the number \textbf{8} appears 10 times, \textb
 \noindent As mentioned in lecture 12 lemma 2 \cite{Lecture12} we have a bound for \(\hat{f}_x \leq f_x + \frac{2}{k} \cdot (n - f_x)\) with a probability of \(1-\left(\frac{1}{2}^t\right)\). When inserting our variables we get that:
 
 
-\[\min_{i \in [t]} C[i][h_i(x)] \leq 20 + \frac{2}{4} \cdot (100 - 20) \text{ with a probability of } 1 - \left(\frac{1}{2}\right)^2\].
+\[\min_{i \in [t]} C[i][h_i(x)] \leq 20 + \frac{2}{4} \cdot (100 - 20) \text{ with a probability of at least } 1 - \left(\frac{1}{2}\right)^2\].
 
-\noindent This states that the probability of \(\hat{f}_x > 60\) is \(\leq \left(\frac{1}{2}\right)^2\). Comparing this to our case where the probability of \(\hat{f}(5) > 30\) happening is \(0.21246\) shows us that there is a bit of difference. This is happening due to the distribution of the stream of numbers. The distribution of the numbers will affect the \textit{true exact} probability of \(\hat{f}_x\) being larger than a specific number.
+\noindent This states that the probability of \(\hat{f}(5) > 60\) is \(\leq \left(\frac{1}{2}\right)^2\). Comparing this to our case where the probability of \(\hat{f}(5) > 30\) happening is \(0.21246\) shows us that there is a bit of difference. This is happening due to the distribution of the numbers in the stream. The mentioned lemma 2 bound states that it can guarantee to uphold that constraint while the actual probability is slightly different. The distribution of the numbers will affect the \textit{true exact} probability of \(\hat{f}_x\) being larger than a specific number.
 
 \section{Part 2}
-As for the second part where the distribution of the numbers is a bit different where \textbf{8} appears
-\textbf{5} times,\textbf{ 7} appears 5 times, \textbf{5} appears 20 times,\textbf{ 3} appears 40 times,\textbf{ 1 }appears 20 times, and lastly \textbf{ 9} appears 10 times. Same as the first question we are looking for the exact probability of \(\hat{f}(5) > 30\) happening. This probability comes to be exactly \(\textbf{0.2490244}\). \\
+As for the second part where the distribution of the numbers is a bit different where \textbf{8} appears \textbf{5} times,\textbf{ 7} appears 5 times, \textbf{5} appears 20 times,\textbf{ 3} appears 40 times,\textbf{ 1 }appears 20 times, and lastly \textbf{ 9} appears 10 times. Same as the first question we are looking for the exact probability of \(\hat{f}(5) > 30\) happening. This probability comes to be exactly \(\textbf{0.2490244}\). \\
 
-\noindent This can be proven by calculating the probability of all different combinations the numbers might add up to that fulfills the constraint that  \(\hat{f}(5) > 30\). The possible sets that make that up are: (5, 3), (5, 1), (5, 8, 3), (5, 8, 1), (5, 8, 9), (5, 7, 3), (5, 7, 1), (5, 7, 9), (5, 3, 1), (5, 3, 9), (5, 1, 9), (5, 8, 7, 3), (5, 8, 7, 1), (5, 8, 7, 9), (5, 8, 3, 1), (5, 8, 3, 9), (5, 8, 1, 9), (5, 7, 3, 1), (5, 7, 3, 9), (5, 7, 1, 9), (5, 3, 1, 9), (5, 8, 7, 3, 1), (5, 8, 7, 3, 9), (5, 8, 7, 1, 9), (5, 8, 3, 1, 9), (5, 7, 3, 1, 9), (5, 8, 7, 3, 1, 9).\\ 
+\noindent This can be proven by calculating the probability of all different combinations the numbers might add up to that fulfills the constraint that  \(\hat{f}(5) > 30\). The possible sets that uphold that constraint are: (5, 3), (5, 1), (5, 8, 3), (5, 8, 1), (5, 8, 9), (5, 7, 3), (5, 7, 1), (5, 7, 9), (5, 3, 1), (5, 3, 9), (5, 1, 9), (5, 8, 7, 3), (5, 8, 7, 1), (5, 8, 7, 9), (5, 8, 3, 1), (5, 8, 3, 9), (5, 8, 1, 9), (5, 7, 3, 1), (5, 7, 3, 9), (5, 7, 1, 9), (5, 3, 1, 9), (5, 8, 7, 3, 1), (5, 8, 7, 3, 9), (5, 8, 7, 1, 9), (5, 8, 3, 1, 9), (5, 7, 3, 1, 9), (5, 8, 7, 3, 1, 9).\\ 
 
-\noindent The different situation has the following probabilities:
+\noindent The different situations have the following probabilities:
 
 \begin{align*}
 (5, X):& \left(\frac{1}{4}\right)^1 \times \left(\frac{3}{4}\right)^4  \\
@@ -95,7 +94,7 @@ As for the second part where the distribution of the numbers is a bit different 
 
 \noindent Because we are using two different hash functions we need to take the probability raised to 2. This yields \(0.4990234375^2 = 0.2490244\). This means that the probability of \(\hat{f}(5) > 30\) happening is \(0.2490244\). \\
 
-\noindent Comparing this to the answer in the first part of the question we can see that the probability is a bit higher. We see that this probability is really close to the bound for \(\hat{f}_x \leq f_x + \frac{2}{k} \cdot (n - f_x)\) with a probability of \(1-\left(\frac{1}{2}\right)^t\). The reason why probability is higher in part 2 is because we see that the frequencies of different numbers have increased which overall will lead to higher causing collision. Overall it might not always be like this be generally speaking more unique numbers with higher frequencies will increase the chance of collisions in the hash table.
+\noindent Comparing this to the answer in the first part of the question we can see that the probability is a bit higher. We see that this probability is close to the bound for \(\hat{f}_x \leq f_x + \frac{2}{k} \cdot (n - f_x)\) with a probability of at least \(1-\left(\frac{1}{2}\right)^t\). Probability is higher in part 2 because we see that the frequencies of different numbers have increased, which will lead to higher collisions. It might not always be like this but generally speaking more unique numbers with higher frequencies will increase the chance of collisions. The conclusion that can be drawn is that the distribution of numbers in a stream affects the accuracy of the COUNTMIN algorithm.
 
 \newpage
 \bibliographystyle{IEEEtran}
